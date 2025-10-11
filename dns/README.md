@@ -94,6 +94,9 @@ DMZ (`10.0.2.0/24`):
 ```bash
 sudo vim /etc/bind/db.10.0.2
 ```
+Preencha a partir do arquivo [`db.10.0.2`](./configs/db.10.0.2)
+
+<br/>
 
 Clientes (`10.0.3.0/24`):
 
@@ -101,7 +104,7 @@ Clientes (`10.0.3.0/24`):
 sudo vim /etc/bind/db.10.0.3
 ```
 
-Preencha a partir dos arquivos [`db.10.0.2`](./configs/db.10.0.2) e [`db.10.0.3`](./configs/db.10.0.3).
+Preencha a partir do arquivo [`db.10.0.3`](./configs/db.10.0.3).
 
 ---
 
