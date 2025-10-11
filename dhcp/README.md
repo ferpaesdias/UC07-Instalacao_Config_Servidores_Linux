@@ -1,4 +1,4 @@
-# 🧭 Servidor DHCP (Kea DHCP) – UC07
+# 🧭 Servidor DHCP (Kea DHCP)
 
 <br/>
 
