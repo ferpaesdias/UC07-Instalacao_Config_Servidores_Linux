@@ -16,6 +16,14 @@ A arquitetura de rede utilizada nos laboratórios da UC07 é composta por três 
 
 ![Infraestrutura de Rede](diag_rede_linux.jpg)
 
+No VirtualBox iremos utilizar os seguinte tipos de interface de rede:
+  
+- **Internet**: Rede Bridge ou NAT
+- **DMZ**: Rede Interna (dmz)
+- **LAN Clientes**: Rede Interna (clientes)
+
+<br/>
+
 ### 🔹 Descrição da Topologia
 
 | Zona | Equipamento | Função | Endereço IP |
