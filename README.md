@@ -95,30 +95,35 @@ UC07-Servidores/
 ├── diag_rede_linux.jpg
 │
 ├── dns/
+│   ├── README.md
 │   ├── scripts/
 │   │   └── instalar_dns.sh
 │   └── configs/
 │       └── named.conf.local
 │
 ├── dhcp/
+│   ├── README.md
 │   ├── scripts/
 │   │   └── configurar_dhcp.sh
 │   └── configs/
 │       └── dhcpd.conf
 │
 ├── firewall/
+│   ├── README.md
 │   ├── scripts/
 │   │   └── configurar_firewall_nftables.sh
 │   └── configs/
 │       └── nftables.conf
 │
 ├── ldap/
+│   ├── README.md
 │   ├── scripts/
 │   │   └── configurar_ldap.sh
 │   └── configs/
 │       └── slapd.ldif
 │
 ├── webserver/
+│   ├── README.md
 │   └── configs/
 │       └── nginx.conf
 │
@@ -127,11 +132,6 @@ UC07-Servidores/
 │   │   └── monitoramento_zabbix.sh
 │   └── docs/
 │       └── guia_monitoramento.md
-│
-├── cloud-init/
-│   ├── server01.yaml
-│   ├── server02.yaml
-│   └── phpmyadmin.yaml
 │
 └── docs/
     ├── guia_pratico_nftables.md
