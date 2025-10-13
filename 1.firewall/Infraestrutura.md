@@ -83,11 +83,47 @@ Salve a ISO, por exemplo, em:
 
 5. Clique em **Finalizar**
 
+<br/>
+
+6. Configure as interfaces de rede
+
+  - Na tela do VirtualBox, selecione a VM **Firewall** e clique em **Configurações**
+
+![vBox Hardware](../Imagens/vbox_config.png)
+
+<br/>
+
+  - No menu lateral, clique em **Rede** e configure o `Adaptador 1` conforme está abaixo:
+    - **Habilitar Placa de Rede**: Marque 
+    - **Conectado a**: `NAT` ou `Placa em modo Bridge`
+
+![vBox Hardware](../Imagens/vbox_configadapt1.png)
+
+<br/>
+
+  - No menu lateral, clique em **Rede** e configure o `Adaptador 2` conforme está abaixo:
+    - **Habilitar Placa de Rede**: Marque 
+    - **Conectado a**: `Rede Interna`
+    - **Nome**: `DMZ`
+
+![vBox Hardware](../Imagens/vbox_configadapt2.png)
+
+<br/>
+
+  - No menu lateral, clique em **Rede** e configure o `Adaptador 3` conforme está abaixo:
+    - **Habilitar Placa de Rede**: Marque 
+    - **Conectado a**: `Rede Interna`
+    - **Nome**: `LanEmpresa`
+
+![vBox Hardware](../Imagens/vbox_configadapt3.png)
+
+<br/>
+
 ---
 
 <br/>
 
-## 4) Instalação do Debian 13 (resumo)
+## 4) Instalação do Debian 13 
 
 <br/>
 
@@ -286,4 +322,5 @@ Salve a ISO, por exemplo, em:
 ![vBox Hardware](../Imagens/vbox_debian_removerdisp.png)
 
 <br/>
+
 ---
