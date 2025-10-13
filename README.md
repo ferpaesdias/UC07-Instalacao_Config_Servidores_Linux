@@ -19,23 +19,27 @@ A arquitetura de rede utilizada nos laboratórios da UC07 é composta por três 
 No VirtualBox iremos utilizar os seguinte tipos de interface de rede:
   
 - **Internet**: Rede Bridge ou NAT
-- **DMZ**: Rede Interna (dmz)
-- **LAN Clientes**: Rede Interna (clientes)
+- **DMZ**: Rede Interna (DMZ)
+- **LAN Clientes**: Rede Interna (Empresa)
 
 <br/>
 
 ### 🔹 Descrição da Topologia
 
-| Zona | Equipamento | Função | Endereço IP |
+| Zona | Hostname | Função | Endereço IP |
 |------|--------------|--------|-------------|
-| **WAN** | Firewall | Conexão com a Internet | `10.0.1.2` |
-| **DMZ (10.0.2.0/24)** | DMZ01 | Servidor **DNS** | `10.0.2.2` |
-| | DMZ02 | Servidor **Web (Nginx)** | `10.0.2.3` |
-| **LAN Clientes (10.0.3.0/24)** | SRV01 | Servidor **DHCP** – range `10.0.3.11-99` | `10.0.3.100` |
-| | SRV02 | Servidor **File Server (Samba)** | `10.0.3.101` |
-| | SRV03 | Servidor **LDAP** | `10.0.3.102` |
+| **Internet** | Firewall | Conexão com a Internet (**nftables**) | |
+| | | | WAN: DHCP Client |
+| | | | DMZ: `10.0.2.1/24` |
+| | | | LAN: `10.0.3.1/24` |
+| **DMZ (10.0.2.0/24)** | | |  |
+| | WEB01 | Servidor **Web (Nginx)** | `10.0.2.200` |
+| **LAN Empresa (10.0.3.0/24)** | | | |
+| | DHCP01 | Servidor **DHCP (Kea/ISC)** – range `10.0.3.11-199` | `10.0.3.200` |
+| | DNS01 | Servidor **DNS (Bind9)** | `10.0.3.201` |
+| | FILESRV01 | Servidor **File Server (Samba)** | `10.0.3.202` |
+| | SRV03 | Servidor **LDAP (OpenLDAP)** | `10.0.3.203` |
 | | PC01 | Estação Cliente | IP dinâmico (DHCP) |
-| **Firewall** | nftables | Encaminhamento, NAT e controle de acesso entre zonas | `10.0.2.1 / 10.0.3.1` |
 
 ---
 
@@ -70,7 +74,7 @@ Planejar e executar a instalação, a configuração e o monitoramento de sistem
 | Tema | Descrição |
 |------|------------|
 | **Administração de Servidores Linux** | Instalação, configuração e hardening de sistemas Debian/Ubuntu. |
-| **Serviços de Rede** | DNS, DHCP, HTTP/HTTPS, Proxy, NTP, SSH, FTP, Samba. |
+| **Serviços de Rede** | DNS, DHCP, LDAP, HTTP/HTTPS, Samba. |
 | **Gerência de Usuários e Domínios** | Criação de usuários, grupos, permissões e autenticação centralizada via **LDAP**. |
 | **Firewall e Segurança** | Controle de tráfego com **nftables** e análise de logs. |
 | **Monitoramento de Recursos** | Instalação e uso de ferramentas como **Zabbix Agent**, **htop**, **ss**, **journalctl** e **systemd-analyze**. |
@@ -142,12 +146,13 @@ UC07-Servidores/
 │       └── guia_monitoramento.md
 │
 └── docs/
+    ├── guia_infraestrutura.md
     ├── guia_pratico_nftables.md
     ├── guia_dns_dhcp.md
     ├── guia_ldap.md
     └── guia_monitoramento.md
-```
 
+```
 ---
 
 <br/>
