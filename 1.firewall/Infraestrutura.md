@@ -492,7 +492,7 @@ ping google.com
 <br/>
 
 ### 1. App básicos
-
+  
 
 ```bash
 sudo apt install -y curl vim 
