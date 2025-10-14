@@ -118,10 +118,10 @@ sudo systemctl status nftables
 Após aplicar as regras, execute testes de conectividade entre as zonas:
 
 ```bash
-# Teste de ping entre clientes e DMZ
-ping 10.0.2.2
+# Verifique se tem conexão à Internet
+ping google.com
 
-# Verificar NAT de saída para a WAN
+# Verificar o IP público da sua rede
 curl ifconfig.me
 ```
 
@@ -132,5 +132,4 @@ Para logs e diagnósticos:
 ```bash
 sudo journalctl -u nftables
 ```
-
 ---
