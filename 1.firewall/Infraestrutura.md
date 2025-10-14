@@ -31,7 +31,7 @@ Salve a ISO, por exemplo, em:
 | CPUs | 1 vCPU |  |
 | Disco | 15 GB (VDI dinâmico) | Controladora SATA; VDI dinâmico economiza espaço |
 | Vídeo | 16 MB, VMSVGA |  |
-| Rede | NAT ou Bridge | Para acesso à Internet |
+| Rede | Bridge | Para acesso à Internet |
 | | Rede Interna "DMZ"| Para a rede DMZ |
 | | Rede Interna "LAN_Empresa"| Para a rede LAN Empresa |
 
@@ -48,13 +48,14 @@ Salve a ISO, por exemplo, em:
 
 <br/>
 
-1. **Abrir o VirtualBox** → **Novo** (ou *Machine » New*).  
+### 1. **Abrir o VirtualBox** → **Novo** (ou *Machine » New*).  
 
 ![vBox Novo](../Imagens/vbox_clique_novo.png)
 
 <br/>
 
-2. Nome e Sistema Opereacional
+### 2. Nome e Sistema Operacional
+
   - **Nome**: `Firewall`
   - **Image ISO**: Selecione o arquivo `.iso` do Debian   
   - **Tipo**: Linux
@@ -65,7 +66,7 @@ Salve a ISO, por exemplo, em:
 
 <br/>
 
-3. Hardware
+### 3. Hardware
   - **Memória Base**: `1024 MB`
   - **Processadores**: 1 CPU   
   - **Habilitar EFI**: Desmarque
@@ -74,18 +75,21 @@ Salve a ISO, por exemplo, em:
 
 <br/>
 
-4. Disco Rígido
+### 4. Disco Rígido
+
   - **Tamaho do Disco Virtual**: 15 GB
 
 ![vBox Hardware](../Imagens/vbox_disco.png)
 
 <br/>
 
-5. Clique em **Finalizar**
+### 5. Clique em **Finalizar**
+
+Nada demais, só clicar em `Finalizar` mesmo 🤷‍♂️.
 
 <br/>
 
-6. Configure as interfaces de rede
+### 6. Configure as interfaces de rede
 
   - Na tela do VirtualBox, selecione a VM **Firewall** e clique em **Configurações**
 
@@ -95,7 +99,7 @@ Salve a ISO, por exemplo, em:
 
   - No menu lateral, clique em **Rede** e configure o `Adaptador 1` conforme está abaixo:
     - **Habilitar Placa de Rede**: Marque 
-    - **Conectado a**: `NAT` ou `Placa em modo Bridge`
+    - **Conectado a**: `Placa em modo Bridge`
 
 ![vBox Hardware](../Imagens/vbox_configadapt1.png)
 
@@ -127,21 +131,22 @@ Salve a ISO, por exemplo, em:
 
 <br/>
 
-1. Iniciar a VM
+### 1. Iniciar a VM
   - Selecione a VM e clique **Firewall** em **Iniciar**
 
 ![vBox Hardware](../Imagens/vbox_iniciar_vm.png)
 
 <br/>
 
-2. Menu de instalação do Debian
+### 2. Menu de instalação do Debian
   - Selecione **Graphical Install**
 
 ![vBox Hardware](../Imagens/vbox_debian_graphicinstall.png)
 
 <br/>
 
-3. Select a language (Selecione um idioma)
+### 3. Select a language (Selecione um idioma)
+
   - **Language** (Idioma): `Portuguese (Brazil)`
   - Clique em **Continue**
 
@@ -149,7 +154,7 @@ Salve a ISO, por exemplo, em:
 
 <br/>
 
-4. Selecionar sua localidade
+### 4. Selecionar sua localidade
   - **País, território ou área**: `Brasil`
   - Clique em **Continuar**
 
@@ -157,7 +162,7 @@ Salve a ISO, por exemplo, em:
 
 <br/>
 
-5. Configure o teclado
+### 5. Configure o teclado
   - **Mapa do teclado a ser usado**: `Português Brasileiro`
   - Clique em **Continuar**
 
@@ -165,7 +170,7 @@ Salve a ISO, por exemplo, em:
 
 <br/>
 
-6. Configure a rede
+### 6. Configure a rede
   - **Nome de máquina**: `Firewall`
   - Clique em **Continuar**
 
@@ -180,7 +185,7 @@ Salve a ISO, por exemplo, em:
 
 <br/>
 
-7. Configurar usuários e senhas
+### 7. Configurar usuários e senhas
   - **Senha do root**: Deixe em branco
   - Clique em **Continuar**
 
@@ -210,7 +215,7 @@ Salve a ISO, por exemplo, em:
 
 <br/>
 
-8. Configurar o relógio
+### 8. Configurar o relógio
   - **Selecione um estado ou província para definir o seu fuso horário**: Selecione o fuso horário de sua localidade.
   - Clique em **Continuar**
 
@@ -218,7 +223,7 @@ Salve a ISO, por exemplo, em:
 
 <br/>
 
-9. Particionar discos
+### 9. Particionar discos
   - **Método de particionamento**: `Assistido - usar o disco inteiro`
   - Clique em **Continuar**
 
@@ -254,7 +259,7 @@ Salve a ISO, por exemplo, em:
 
 <br/>
 
-10. Configurar o gerenciador de pacotes
+### 10. Configurar o gerenciador de pacotes
   - **Ler mídia de instalação adicional ?**: `Não`
   - Clique em **Continuar**
 
@@ -283,7 +288,7 @@ Salve a ISO, por exemplo, em:
 
 <br/>
 
-11. Configurando o popularity-contest
+### 11. Configurando o popularity-contest
   - **Participar do concurso de utilização de pacotes ?**: `Não`
   - Clique em **Continuar**
 
@@ -291,7 +296,7 @@ Salve a ISO, por exemplo, em:
 
 <br/>
 
-12. Seleção de software
+### 12. Seleção de software
   - **Escolha o software a ser instalado**: `servidor SSH` e `utilitários de sistema padrão`. Não use o `Enter` para selecionar, use a `Barra de espaco`. 
   - Clique em **Continuar**
 
@@ -299,7 +304,7 @@ Salve a ISO, por exemplo, em:
 
 <br/>
 
-13. Instalar o carregador de inicialização GRUB
+### 13. Instalar o carregador de inicialização GRUB
   - **Instalar o carregador de inicialização GRUB no seu disco primário?**: `Sim`
   - Clique em **Continuar**
 
@@ -314,13 +319,178 @@ Salve a ISO, por exemplo, em:
 
 <br/>
 
-14. Finalizar a instalação
+### 14. Finalizar a instalação
   - Remover a mídia de instalação:
     - No menu do VirtualBox clique em **Dispositivos** => **Discos Ópticos** => **Remover disco do drive virtual**. Se a última opção estiver apagada é porque o próprio VirtualBox já removeu o disco. 
   - Clique em **Continuar**
 
 ![vBox Hardware](../Imagens/vbox_debian_removerdisp.png)
 
+---
+
 <br/>
+
+## 5) Configuração de rede
+
+<br/>
+
+### 1. Coletar os endereços MAC dos adaptadores de rede no VirtualBox:
+
+<br/>
+
+No VirtualBox, selecione a VM **Firewall**, clique em **Configurações** e, na janela que abrir, clique em **Rede** no menu lateral.  Relacione o adaptador ao endereço MAC, por exemplo:
+
+![vBox Hardware](../Imagens/vbox_configadapt1_mac.png)
+
+<br/>
+
+  - `Adaptador 1`
+    - **Conectado a**: `Placa em modo Bridge`
+    - **Endereço MAC**: `080027B70C24`
+
+<br/>
+
+  - `Adaptador 2`
+    - **Conectado a**: `Rede Interna`
+    - **Nome**: `DMZ`
+    - **Endereço MAC**: `0800274F87C0`
+
+<br/>
+
+  - `Adaptador 3`
+    - **Conectado a**: `Rede Interna`
+    - **Nome**: `LanEmpresa`
+    - **Endereço MAC**: `08002773FC47`
+
+<br/>
+
+### 2. Coletar os endereços MAC dos adaptadores de rede Debian:
+
+<br/>
+
+No shell do Debian, liste as interfaces de rede com o comando abaixo
+
+```bash
+ip -brief link
+```
+
+<br/>
+
+A saída do comando:
+
+```bash
+lo               UNKNOWN        00:00:00:00:00:00 <LOOPBACK,UP,LOWER_UP> 
+enp0s3           UP             08:00:27:b7:0c:24 <BROADCAST,MULTICAST,UP,LOWER_UP> 
+enp0s8           DOWN           08:00:27:4f:87:c0 <BROADCAST,MULTICAST> 
+enp0s9           DOWN           08:00:27:73:fc:47 <BROADCAST,MULTICAST> 
+```
+
+<br/>
+
+### 3. Relacionar os interfaces de rede do Debian aos endereço MAC dos adaptadores de rede
+
+
+Com os dados coleados acima, agora podemos relacionar os adaptadores de rede do VirtualBox com as interfaces de rede do Debian pelo endereço MAC. No meu caso ficará da seguinte forma:
+
+<br/>
+
+- **Adaptador 1**
+  - **Conectado a**: `Placa em modo Bridge`
+  - **Endereço MAC**: `080027B70C24`
+  - **Interface**: `enp0s3`
+
+
+<br/>
+
+- **Adaptador 2**
+  - **Conectado a**: `Rede Interna`
+  - **Nome**: `DMZ`
+  - **Endereço MAC**: `0800274F87C0`
+  - **Interface**: `enp0s8`
+
+<br/>
+
+- **Adaptador 3**
+  - **Conectado a**: `Rede Interna`
+  - **Nome**: `LanEmpresa`
+  - **Endereço MAC**: `08002773FC47`
+  - **Interface**: `enp0s9`
+
+<br/>
+
+### 34. Configurar IPs no Debian  
+
+<br/>
+
+No shell do Debian, edite o arquivo `/etc/network/interfaces`
+
+```bash
+sudo vim /etc/network/interfaces
+```
+
+<br/>
+
+ou, use o `nano`:
+
+```bash
+sudo nano /etc/network/interfaces
+```
+
+<br/>
+
+Segue um exemplo de configuração das interfaces de rede. Se atente em atribuir corretamente os endereços IPs as interfaces de rede:
+
+```bash
+ This file describes the network interfaces available on your system
+# and how to activate them. For more information, see interfaces(5).
+
+source /etc/network/interfaces.d/*
+
+# The loopback network interface
+auto lo
+iface lo inet loopback
+
+# The primary network interface
+allow-hotplug enp0s3
+iface enp0s3 inet dhcp
+
+# The secondary network interface
+allow-hotplug enp0s8
+iface enp0s8 inet static
+	address	10.0.2.1
+	netmask	255.255.255.0
+
+# The tertiary network interface
+allow-hotplug enp0s9
+iface enp0s9 inet static
+	address	10.0.3.1
+	netmask	255.255.255.0
+``` 
+
+<br/>
+
+Reinicie o serviço de rede
+
+```bash
+sudo systemctl restart networking
+```
+
+<br/>
+
+
+Verifique a configuração
+
+```bash
+ip addr
+```
+
+<br/>
+
+
+Verifique se tem conexão com a Internet
+
+```bash
+ping google.com
+```
 
 ---
