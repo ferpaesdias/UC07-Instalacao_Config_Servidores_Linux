@@ -425,14 +425,6 @@ Com os dados coleados acima, agora podemos relacionar os adaptadores de rede do 
 No shell do Debian, edite o arquivo `/etc/network/interfaces`
 
 ```bash
-sudo vim /etc/network/interfaces
-```
-
-<br/>
-
-ou, use o `nano`:
-
-```bash
 sudo nano /etc/network/interfaces
 ```
 
@@ -493,4 +485,16 @@ Verifique se tem conexão com a Internet
 ping google.com
 ```
 
+<br/>
+
+## 6) Instalação básica de apps
+
+<br/>
+
+### 1. App básicos
+
+
+```bash
+sudo apt install -y curl vim 
+``` 
 ---
