@@ -45,7 +45,7 @@ No VirtualBox iremos utilizar os seguinte tipos de interface de rede:
 
 <br/>
 
-## 🎯 Objetivo da UC
+## 🎯 Objetivo da UC 
 Capacitar o estudante para **planejar, instalar, configurar e monitorar sistemas operacionais de rede**, garantindo a segurança, o desempenho e a disponibilidade dos serviços.
 
 ---
