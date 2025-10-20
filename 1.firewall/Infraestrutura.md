@@ -1,4 +1,4 @@
-# Guia: Criar uma VM com **Debian 13 (Trixie)** no VirtualBox
+# Guia: Criar a VM do Firewall com **Debian 13 (Trixie)** no VirtualBox
 
 Este passo a passo mostra como criar a VM pelo assistente gráfico do VirtualBox para a tarefa proposta neste repositório.
 
