@@ -1,4 +1,4 @@
-# Guia: Criar a VM do Firewall com **Debian 13 (Trixie)** no VirtualBox
+# Guia: Criar a VM do DHCP server com **Debian 13 (Trixie)** no VirtualBox
 
 Este passo a passo mostra como criar a VM pelo assistente gráfico do VirtualBox para a tarefa proposta neste repositório.
 
@@ -25,15 +25,13 @@ Salve a ISO, por exemplo, em:
 
 | Componente | Valor sugerido | Observações |
 |---|---|---|
-| Nome | `Firewall` | Use o mesmo nome do Hostname |
+| Nome | `dhcp01` | Use o mesmo nome do Hostname |
 | Tipo/SO | Linux / Debian (64‑bit) | O VirtualBox detecta automaticamente pela ISO em versões mais novas |
 | RAM | 1024 MB | 01 GB é suficiente para a nossa proposta |
 | CPUs | 1 vCPU |  |
 | Disco | 15 GB (VDI dinâmico) | Controladora SATA; VDI dinâmico economiza espaço |
 | Vídeo | 16 MB, VMSVGA |  |
-| Rede | Bridge | Para acesso à Internet |
-| | Rede Interna "DMZ"| Para a rede DMZ |
-| | Rede Interna "LAN_Empresa"| Para a rede LAN Empresa |
+| Rede | Rede Interna "LAN_Empresa"| Para a rede LAN Empresa |
 
 <br/>
 
@@ -448,14 +446,14 @@ iface enp0s3 inet dhcp
 # The secondary network interface
 allow-hotplug enp0s8
 iface enp0s8 inet static
-	address	10.0.2.1
-	netmask	255.255.255.0
+  address	10.0.2.1
+  netmask	255.255.255.0
 
 # The tertiary network interface
 allow-hotplug enp0s9
 iface enp0s9 inet static
-	address	10.0.3.1
-	netmask	255.255.255.0
+  address	10.0.3.1
+  netmask	255.255.255.0
 ``` 
 
 <br/>
