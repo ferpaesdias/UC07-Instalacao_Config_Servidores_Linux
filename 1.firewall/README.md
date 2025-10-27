@@ -35,7 +35,7 @@ Com o **nftables**, é possível definir políticas de segurança, NAT (Network 
 
 <br/>
 
-### 1️ Habilitar o encaminhamento de pacotes (IP Forwarding)
+### 1️⃣ Habilitar o encaminhamento de pacotes (IP Forwarding)
 
 Crie o arquivo `/etc/sysctl.d/99-custom-forwarding.conf`:
 
@@ -65,7 +65,7 @@ sudo sysctl --system
 
 <br/>
 
-### 2️ Configurar o nftables
+### 2️⃣ Configurar o nftables
 
 Substitua o conteúdo do arquivo principal do firewall:
 
@@ -79,7 +79,7 @@ Copie o conteúdo do arquivo [`nftables.conf`](./configs/nftables.conf) deste re
 
 <br/>
 
-### 3️ Aplicar e testar a configuração
+### 3️⃣ Aplicar e testar a configuração
 
 Teste o arquivo de regras antes de ativar o serviço:
 
@@ -99,7 +99,7 @@ sudo nft list ruleset
 
 <br/>
 
-### 4️ Habilitar o serviço nftables
+### 4️⃣ Habilitar o serviço nftables
 
 ```bash
 sudo systemctl enable nftables
