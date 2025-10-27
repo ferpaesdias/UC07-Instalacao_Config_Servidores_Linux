@@ -22,8 +22,11 @@ O **DNS (Domain Name System)** resolve **nomes de host em endereços IP** (e vic
 |------|--------|
 | **Software** | BIND 9 (ISC) |
 | **Sistema operacional** | Debian 13 (Trixie) |
+| **Endereço IP** | `10.0.3.201` |
+| **Gateway padrão** | `10.0.3.1` |
+| **Endereço DNS** | `127.0.0.1` |
 | **Domínio** | `empresatech.example` |
-| **Zonas** | Direta: <br/>`empresatech.example`<br/> <br/>Reversas: <br/>`2.0.10.in-addr.arpa` (DMZ – 10.0.2.0/24) <br/>`3.0.10.in-addr.arpa` (Clientes – 10.0.3.0/24) |
+| **Zonas** | Direta: <br/>`empresatech.example`<br/> <br/>Reversas: <br/>`2.0.10.in-addr.arpa` (DMZ – 10.0.2.0/24) <br/>`3.0.10.in-addr.arpa` (LANEmpresa – 10.0.3.0/24) |
 | **Arquivos principais** | `/etc/bind/named.conf.options`, `/etc/bind/named.conf.local`, `/etc/bind/db.empresatech.example`, `/etc/bind/db.10.0.2`, `/etc/bind/db.10.0.3` |
 
 ---
@@ -143,8 +146,8 @@ sudo systemctl status bind9
 # Resolução direta
 dig @localhost www.empresatech.example +short
 
-# Resolução reversa (exemplo para 10.0.2.2)
-dig @localhost -x 10.0.2.2 +short
+# Resolução reversa (exemplo para 10.0.3.201)
+dig @localhost -x 10.0.3.201 +short
 ```
 
 > Se receber respostas coerentes, a configuração está funcional.

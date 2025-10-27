@@ -25,7 +25,7 @@ O **DHCP (Dynamic Host Configuration Protocol)** é responsável por **atribuir 
 | **Interface de rede** | ajustar conforme o ambiente |
 | **Faixa de IPs** | `10.0.3.11 – 10.0.3.99` |
 | **Gateway padrão** | `10.0.3.1` |
-| **Servidor DHCP** | `10.0.3.100` |
+| **Servidor DHCP** | `10.0.3.200` |
 | **Domínio** | `empresatech.example` |
 | **Arquivo principal** | `/etc/kea/kea-dhcp4.conf` |
 
