@@ -1,6 +1,5 @@
 # 🧭 Servidor DHCP (Kea DHCP)
 
-<br/>
 
 Este documento descreve a instalação e configuração do **servidor DHCP (Kea DHCP)** utilizado nos laboratórios da UC07.
 
@@ -14,15 +13,12 @@ O **DHCP (Dynamic Host Configuration Protocol)** é responsável por **atribuir 
 
 ---
 
-<br/>
-
 ## 🧩 Descrição do Serviço
 
 | Item | Detalhe |
 |------|----------|
 | **Software** | Kea DHCP (ISC) |
 | **Sistema operacional** | Debian 13 (Trixie) |
-| **Interface de rede** | ajustar conforme o ambiente |
 | **Faixa de IPs** | `10.0.3.11 – 10.0.3.99` |
 | **Gateway padrão** | `10.0.3.1` |
 | **Servidor DHCP** | `10.0.3.200` |
@@ -35,7 +31,6 @@ O **DHCP (Dynamic Host Configuration Protocol)** é responsável por **atribuir 
 
 ## ⚙️ Instalação e Configuração do Kea DHCP Server
 
-<br/>
 
 ### 1️⃣ Instalar o pacote
 
@@ -53,7 +48,6 @@ sudo apt install kea-dhcp4-server -y
 ```bash
 sudo mv /etc/kea/kea-dhcp4.conf /etc/kea/kea-dhcp4.conf.bak
 ```
-
 ---
 
 <br/>
