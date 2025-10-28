@@ -144,7 +144,7 @@ sudo systemctl status bind9
 
 ```bash
 # Resolução direta
-dig @localhost www.empresatech.example +short
+dig @localhost www01.empresatech.example +short
 
 # Resolução reversa (exemplo para 10.0.3.201)
 dig @localhost -x 10.0.3.201 +short
