@@ -1,12 +1,13 @@
-$TTL	604800
-@	IN	SOA	dns.empresatech.example. admin.empresatech.example.	(
-			2025100501	; Serial
-			604800		; Refresh
-			86400		; Retry
-			2419200		; Expire
-			604800	)	; Negative Cache TTl
+$TTL    604800
+@       IN      SOA     dns01.empresatech.example. admin.empresatech.example. (
+                        2025102701 ; Serial
+                        604800     ; Refresh
+                        86400      ; Retry
+                        2419200    ; Expire
+                        604800 )   ; Negative Cache TTL
 ;
-@	IN	NS	dns.empresatech.example.
-200	IN	PTR	dhcp.empresatech.example.
-202	IN	PTR	filesrv.empresatech.example.
-203	IN	PTR	ldap.empresatech.example.
+@       IN      NS      dns01.empresatech.example.
+201     IN      PTR     dns01.empresatech.example.
+200     IN      PTR     dhcp01.empresatech.example.
+202     IN      PTR     filesrv01.empresatech.example.
+203     IN      PTR     srv03.empresatech.example.

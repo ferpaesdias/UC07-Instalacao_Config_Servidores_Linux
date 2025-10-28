@@ -11,7 +11,7 @@ options {
       none; 
     };
 
-    // Permitir consultas apenas da rede local
+    // Faixas de IP que podem consultar o DNS
     allow-query { 
       10.0.3.0/24; 
       10.0.2.0/24; 
