@@ -10,7 +10,7 @@ Realiza **NAT (masquerade)**, **roteamento interno**, e **regras de filtragem co
 
 | Interface | IP | Rede | Função |
 |------------|----|------|--------|
-| `ens33` | DHCP | WAN (Internet) | Interface externa |
+| `ens33` | DHCP Client | WAN (Internet) | Interface externa |
 | `ens34` | 172.20.0.1/24 | DMZ | Comunicação com WEB01 e SYS01 |
 | `ens35` | 192.168.100.1/24 | LAN | Gateway interno dos servidores e clientes |
 
@@ -18,19 +18,23 @@ Realiza **NAT (masquerade)**, **roteamento interno**, e **regras de filtragem co
 
 ## ⚙️ Configuração de Rede
 
+Arquivo de configuração de redes: `/etc/network/interfaces`
+
 ```bash
+# Configure as interfaces conforme a sua infraestrutura 
+
 # Interface WAN - obtém IP público via DHCP
-auto ens33
-iface ens33 inet dhcp
+auto enp0s3
+iface enp0s3 inet dhcp
 
 # Interface DMZ
-auto ens34
-iface ens34 inet static
+auto enp0s8
+iface enp0s8 inet static
   address 172.20.0.1/24
 
 # Interface LAN
-auto ens35
-iface ens35 inet static
+auto enp0s9
+iface enp0s9 inet static
   address 192.168.100.1/24
 ```
 
@@ -39,26 +43,42 @@ iface ens35 inet static
 ## 🔄 Ativação do Roteamento IPv4
 
 ```bash
-sudo nano /etc/sysctl.conf
+sudo vim /etc/sysctl.d/99-forwarding-custom.conf
 ```
-Descomente (ou adicione):
+
+<br/>
+
+Adicione ao arquivo:
 ```bash
 net.ipv4.ip_forward=1
 ```
 
-Aplicar:
+<br/>
+
+Aplicar a configuração:
+
 ```bash
-sudo sysctl -p
+sudo sysctl --system
 ```
 
 ---
 
 ## 🧱 Regras do nftables
 
+Arquivo de configuração do `nftables`: `/etc/nftables.conf`
+
 ```bash
 #!/usr/sbin/nft -f
 
 flush ruleset
+
+# --- Variáveis --- #
+define WAN_IF  = "enp0s3"
+define DMZ_IF  = "enp0s8"
+define LAN_IF  = "enp0s9"
+define DMZ_NET  = 172.20.0.0/24
+define LAN_NET  = 192.168.100.0/24
+# ------------------ # 
 
 table inet filter {
     chain input {
@@ -69,16 +89,16 @@ table inet filter {
         iif lo accept
 
         # Permitir conexões já estabelecidas
-        ct state established,related accept
+        ct state {established,related} accept
+
+        # Bloquear pacotes inválidos
+        ct state invalid drop
 
         # SSH administrativo
-        tcp dport 22 accept
+        ip saddr 192.168.100.200 protocol tcp dport 22 accept
 
         # ICMP (ping)
-        ip protocol icmp accept
-
-        # Acesso HTTP/HTTPS da DMZ
-        iifname "ens34" tcp dport {80,443,8080} accept
+        ip saddr $LAN_NET protocol icmp type echo-request accept
 
         # Log e descarte do restante
         log prefix "DROP_INPUT: " counter
@@ -90,13 +110,16 @@ table inet filter {
         policy drop;
 
         # Permitir LAN → Internet
-        iifname "ens35" oifname "ens33" accept
+        iifname $LAN_IF oifname $WAN_IF accept
 
         # Permitir LAN → DMZ
-        iifname "ens35" oifname "ens34" accept
+        iifname $LAN_IF oifname $DMZ_IF accept
 
-        # Permitir retorno das conexões
-        ct state established,related accept
+        # Permitir conexões já estabelecidas
+        ct state {established,related} accept
+
+        # Bloquear pacotes inválidos
+        ct state invalid drop
 
         # Log e descarte do restante
         log prefix "DROP_FORWARD: " counter
@@ -112,25 +135,41 @@ table inet filter {
 table ip nat {
     chain prerouting {
         type nat hook prerouting priority -100;
+        
         # DNAT: acesso externo redirecionado para Web01 e Sys01
-        iifname "ens33" tcp dport 80 dnat to 172.20.0.200:80
-        iifname "ens33" tcp dport 8080 dnat to 172.20.0.201:8080
+        iifname $WAN_IF tcp dport 80 dnat to 172.20.0.200:80
+        iifname $WAN_IF tcp dport 8080 dnat to 172.20.0.201:8080
     }
 
     chain postrouting {
         type nat hook postrouting priority 100;
         # NAT (masquerade) para LAN e DMZ
-        oifname "ens33" masquerade
+        oifname $WAN_IF masquerade
     }
 }
 ```
 
----
+<br/>
 
-## 🧰 Serviços Instalados
+Aplicar e validar a configuração do `nftables`:
 
 ```bash
-sudo apt install nftables iproute2
+sudo nft -f /etc/nftables.conf
+```
+
+<br/>
+
+Listar as regras
+
+```bash
+sudo nft list ruleset
+```
+
+---
+
+## 🧰 Habilitar e iniciar o nftables
+
+```bash
 sudo systemctl enable --now nftables
 ```
 
@@ -138,19 +177,17 @@ sudo systemctl enable --now nftables
 
 ## 🧪 Testes de Conectividade
 
-1. **Ping LAN → Internet**  
-   `ping 8.8.8.8`
+1. **Ping Firewall → Internet**  
 
-2. **Ping LAN → DMZ**  
-   `ping 172.20.0.200`
-
-3. **Acesso Externo (DNAT)**  
-   Acessar o IP público do firewall nas portas 80 e 8080  
-   → deve abrir respectivamente o **Web01 (Nginx)** e o **Sys01 (CRUD)**
+```bash
+ping 8.8.8.8
+ping google.com
+```
 
 ---
 
 ## ✍️ Autor
 **Fernando Dias**  
-Docente de Redes e Infraestrutura de Computadores - SENAC São Paulo  
-📘 Projeto: Infraestrutura de Servidores Linux (UC07)
+Docente de Redes e Infraestrutura de Computadores 
+
+---
