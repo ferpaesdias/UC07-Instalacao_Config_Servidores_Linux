@@ -70,6 +70,7 @@ Arquivo de configuração do `nftables`: `/etc/nftables.conf`
 ```bash
 #!/usr/sbin/nft -f
 
+# Apaga completamente o conjunto de regras anteriores
 flush ruleset
 
 # --- Variáveis --- #
@@ -81,10 +82,12 @@ define LAN_NET  = 192.168.100.0/24
 # ------------------ # 
 
 table inet filter {
+
+    # --- CHAIN INPUT --- #
     chain input {
         type filter hook input priority 0;
-        policy drop;
-
+        policy drop;  # Política padrão da chain: DROP
+ 
         # Permitir loopback
         iif lo accept
 
@@ -94,26 +97,21 @@ table inet filter {
         # Bloquear pacotes inválidos
         ct state invalid drop
 
-        # SSH administrativo
-        ip saddr 192.168.100.200 protocol tcp dport 22 accept
+        # SSH administrativo do servidor ADM01
+        ip saddr 192.168.100.200 tcp dport 22 accept
 
-        # ICMP (ping)
-        ip saddr $LAN_NET protocol icmp type echo-request accept
+        # Permite ping da LAN
+        ip saddr $LAN_NET icmp type echo-request accept
 
         # Log e descarte do restante
-        log prefix "DROP_INPUT: " counter
+        log prefix "DROP_INPUT: " counter # counter: conta o acertos da regra (útil para diagnóstico)
         drop
     }
 
+    # --- CHAIN FORWARD --- #
     chain forward {
         type filter hook forward priority 0;
-        policy drop;
-
-        # Permitir LAN → Internet
-        iifname $LAN_IF oifname $WAN_IF accept
-
-        # Permitir LAN → DMZ
-        iifname $LAN_IF oifname $DMZ_IF accept
+        policy drop; # Política padrão da chain: DROP
 
         # Permitir conexões já estabelecidas
         ct state {established,related} accept
@@ -121,14 +119,20 @@ table inet filter {
         # Bloquear pacotes inválidos
         ct state invalid drop
 
+        # Permitir LAN → Internet
+        iifname $LAN_IF oifname $WAN_IF accept
+
+        # Permitir LAN → DMZ
+        iifname $LAN_IF oifname $DMZ_IF accept
+
         # Log e descarte do restante
-        log prefix "DROP_FORWARD: " counter
+        log prefix "DROP_FORWARD: " counter # counter: conta o acertos da regra (útil para diagnóstico)
         drop
     }
 
     chain output {
         type filter hook output priority 0;
-        policy accept;
+        policy accept; # Política padrão da chain: ACCEPT
     }
 }
 
@@ -143,6 +147,7 @@ table ip nat {
 
     chain postrouting {
         type nat hook postrouting priority 100;
+
         # NAT (masquerade) para LAN e DMZ
         oifname $WAN_IF masquerade
     }
@@ -169,8 +174,18 @@ sudo nft list ruleset
 
 ## 🧰 Habilitar e iniciar o nftables
 
+Habilitar e iniciar o `nftables`
+
 ```bash
 sudo systemctl enable --now nftables
+```
+
+<br/>
+
+Verificar status do serviço
+
+```bash
+sudo systemctl status nftables
 ```
 
 ---
