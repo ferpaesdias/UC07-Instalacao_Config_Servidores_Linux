@@ -1,134 +1,112 @@
-# 🖥️ UC07 – Planejar e Executar a Instalação, Configuração e Monitoramento de Servidores
+# 🏢 Infraestrutura de Servidores - EmpresaTech
 
 <br/>
 
-Repositório de apoio às aulas da **UC07** dos cursos **Técnico em Manutenção e Suporte em Informática**, **Técnico em Informática** e **Técnico em Redes** (UC03).  
-
-Este repositório contém **scripts, arquivos de configuração, guias e exemplos práticos** utilizados nas aulas para o desenvolvimento das competências ligadas à **administração de sistemas operacionais de rede (servidores)** em ambientes locais e virtualizados.
+## 📘 Visão Geral
+Este repositório documenta a infraestrutura da **rede corporativa da EmpresaTech**, composta por servidores **Linux** e clientes **múltiplas plataformas (Linux e Windows)**.  
+O ambiente está dividido em **duas zonas principais** — **LAN** e **DMZ** — e protegido por um **Firewall** que realiza NAT e controle de tráfego entre as redes internas e a Internet.
 
 ---
 
 <br/>
 
-## 🌐 Topologia da Infraestrutura
+## 🧩 Topologia de Rede
 
-A arquitetura de rede utilizada nos laboratórios da UC07 é composta por três zonas principais: **WAN**, **DMZ** e **LAN (Clientes)**, separadas por um **firewall** configurado com **nftables**.
-
-![Infraestrutura de Rede](diag_rede_linux.jpg)
-
-No VirtualBox iremos utilizar os seguinte tipos de interface de rede:
-  
-- **Internet**: Rede Bridge ou NAT
-- **DMZ**: Rede Interna (DMZ)
-- **LAN Clientes**: Rede Interna (Empresa)
-
-<br/>
-
-### 🔹 Descrição da Topologia
-
-| Zona | Hostname | Função | Endereço IP |
-|------|--------------|--------|-------------|
-| **Internet** | Firewall | Conexão com a Internet (**nftables**) | |
-| | | | WAN: DHCP Client |
-| | | | DMZ: `10.0.2.1/24` |
-| | | | LAN: `10.0.3.1/24` |
-| **DMZ (10.0.2.0/24)** | | |  |
-| | WEB01 | Servidor **Web (Nginx)** | `10.0.2.200` |
-| **LAN Empresa (10.0.3.0/24)** | | | |
-| | DHCP01 | Servidor **DHCP (Kea/ISC)** – range `10.0.3.11-199` | `10.0.3.200` |
-| | DNS01 | Servidor **DNS (Bind9)** | `10.0.3.201` |
-| | FILESRV01 | Servidor **File Server (Samba)** | `10.0.3.202` |
-| | SRV03 | Servidor **LDAP (OpenLDAP)** | `10.0.3.203` |
-| | PC01 | Estação Cliente | IP dinâmico (DHCP) |
+![Topologia da rede](diag_rede_linux.jpg)
 
 ---
 
 <br/>
 
-## 🎯 Objetivo da UC 
-Capacitar o estudante para **planejar, instalar, configurar e monitorar sistemas operacionais de rede**, garantindo a segurança, o desempenho e a disponibilidade dos serviços.
+## 🌐 Redes
+
+| Segmento | Faixa | Gateway | Descrição |
+|-----------|--------|----------|-----------|
+| **LAN** | `192.168.100.0/24` | `192.168.100.1` | Rede interna (servidores e clientes) |
+| **DMZ** | `172.20.0.0/24` | `172.20.0.1` | Rede exposta à Internet |
+| **WAN** | DHCP (IP público) | — | Interface externa do firewall |
 
 ---
 
 <br/>
 
-## 🧩 Competência
-Planejar e executar a instalação, a configuração e o monitoramento de sistemas operacionais de redes locais (servidores).
+## 🖥️ Servidores da LAN
+
+| Hostname | IP | Função | Serviços |
+|-----------|----|--------|-----------|
+| **ADM01** | 192.168.100.200 | Administração e Monitoramento | SSH, Ansible, Chrony (NTP), Zabbix-agent |
+| **DNS01** | 192.168.100.201 | Controlador de Domínio | Samba AD DC + BIND9 (DNS interno `empresatech.example`) |
+| **DHCP01** | 192.168.100.202 | Servidor DHCP | Kea DHCP4 Server |
+| **FS01** | 192.168.100.203 | Servidor de Arquivos | Samba (membro do domínio) |
 
 ---
 
 <br/>
 
-## 📊 Indicadores de Desempenho
-- Instala sistemas operacionais em servidores conforme normas técnicas e políticas de segurança.  
-- Configura e gerencia serviços de rede (DNS, DHCP, Web, LDAP, Firewall).  
-- Monitora servidores e serviços, aplicando técnicas de diagnóstico e resolução de problemas.  
-- Registra e documenta configurações e intervenções realizadas.  
+## 🌍 Servidores da DMZ
+
+| Hostname | IP | Função | Serviços |
+|-----------|----|--------|-----------|
+| **WEB01** | 172.20.0.200 | Servidor Web Público | Nginx (porta 80/443) |
+| **SYS01** | 172.20.0.201 | Sistema CRUD | Backend (porta 8080) |
 
 ---
 
 <br/>
 
-## 🧠 Temas Principais
+## 🔥 Firewall
 
-| Tema | Descrição |
-|------|------------|
-| **Administração de Servidores Linux** | Instalação, configuração e hardening de sistemas Debian/Ubuntu. |
-| **Serviços de Rede** | DNS, DHCP, LDAP, HTTP/HTTPS, Samba. |
-| **Gerência de Usuários e Domínios** | Criação de usuários, grupos, permissões e autenticação centralizada via **LDAP**. |
-| **Firewall e Segurança** | Controle de tráfego com **nftables** e análise de logs. |
-| **Monitoramento de Recursos** | Instalação e uso de ferramentas como **Zabbix Agent**, **htop**, **ss**, **journalctl** e **systemd-analyze**. |
-| **Virtualização e Testes** | Uso de **VirtualBox** e **Hyper-V** para simular servidores e redes locais. |
+| Interface | IP | Rede | Função |
+|------------|----|------|---------|
+| **WAN** | DHCP (dinâmico) | Internet | Interface externa |
+| **DMZ** | 172.20.0.1 | DMZ | Controle de entrada/saída |
+| **LAN** | 192.168.100.1 | LAN | Gateway interno e NAT |
 
 ---
 
 <br/>
 
-## 🧪 Laboratórios Práticos
+## 🧭 Ordem de Implantação
 
-| Serviço | Objetivo | Ferramentas |
-|----------|-----------|-------------|
-| **DNS (BIND9)** | Criar e gerenciar zonas de resolução direta e reversa. | `named.conf`, `dig`, `nslookup` |
-| **DHCP (Kea / ISC)** | Automatizar a atribuição de endereços IP e reservas fixas. | `kea-dhcp4`, `dhcpd.conf` |
-| **Firewall (nftables)** | Controlar acesso entre as zonas LAN/DMZ/WAN e registrar logs. | `nft`, `/etc/nftables.conf` |
-| **Servidor Web (Nginx)** | Hospedar sites internos e testar a comunicação entre sub-redes. | `Nginx`, `curl` |
-| **LDAP (slapd)** | Gerenciar autenticação centralizada de usuários em rede. | `ldapadd`, `slapcat`, `ldif` |
-| **Monitoramento (Zabbix Agent)** | Acompanhar desempenho e disponibilidade dos serviços. | `zabbix-agent`, `ps`, `ss` |
-
----
-
-<br/>
-
-## 🧾 Recursos Utilizados em Aula
-- **Distribuição base:** Debian 13 (Trixie)  
-- **Ferramentas de virtualização:** VirtualBox / Hyper-V  
-- **Monitoramento:** Zabbix Server + Agent  
-- **Editor de texto:** Nano / Vim  
+1. **Firewall:** configurar NAT e rotas básicas.  
+2. **ADM01:** SSH, NTP e Ansible.  
+3. **DNS01:** Samba AD + DNS interno.  
+4. **DHCP01:** Kea configurado apontando para DNS01.  
+5. **FS01:** ingressar no domínio e configurar compartilhamentos.  
+6. **WEB01/SYS01:** configurar webserver e expor via DNAT.  
+7. **Testes:** validar DHCP, DNS, domínio e acesso externo.
 
 ---
 
 <br/>
 
-## 👨‍🏫 Docente Responsável
+## 🧰 Ferramentas Utilizadas
+
+| Categoria | Software |
+|------------|-----------|
+| Sistema Operacional | Debian 13 (Trixie) |
+| Servidor DHCP | Kea DHCP4 |
+| Servidor DNS e Domínio | Samba AD DC + BIND9 |
+| Servidor de Arquivos | Samba |
+| Gerenciamento | Ansible, SSH, Cockpit |
+| Monitoramento | Zabbix |
+| Firewall | nftables |
+| Sincronismo de Tempo | Chrony |
+
+---
+
+<br/>
+
+## 🧾 Autor
+
 **Fernando Dias**  
-Docente da área de Redes e Infraestrutura
+Docente de Redes e Infraestrutura de Computadores  
+💻 *Ambiente didático e técnico para aulas de manutenção e servidores Linux.*
 
 ---
 
 <br/>
 
-## 🤝 Contribuições
-Os alunos podem:
-- Propor melhorias nos scripts e arquivos de configuração;  
-- Corrigir erros encontrados durante os testes;  
-- Adicionar documentação complementar de boas práticas.  
-
----
-
-<br/>
-
-## 🏁 Licença
-Material de uso **educacional**.  
-Distribuído sob a licença **Creative Commons CC BY-NC-SA 4.0** – uso não comercial e compartilhamento com atribuição.
-
----
+> 📦 **Repositório criado para estudos de infraestrutura de redes locais e serviços Linux integrados.**
+>  
+> 🔄 Pode ser utilizado como base para as UCs de **Redes**, **Serviços de Infraestrutura**, e **Administração de Servidores** no curso Técnico em Informática ou Redes.
