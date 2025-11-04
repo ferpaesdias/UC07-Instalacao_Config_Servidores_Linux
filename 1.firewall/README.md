@@ -130,6 +130,6 @@ curl ifconfig.me
 Para logs e diagnósticos:
 
 ```bash
-sudo journalctl -u nftables
+sudo journalctl -k -f | grep FIREWALL
 ```
 ---
