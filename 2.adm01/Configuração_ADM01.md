@@ -18,13 +18,13 @@ sudo hostnamectl set-hostname adm01
 
 ### `/etc/hosts`
 ```bash
-127.0.0.1   localhost
-192.168.100.200  adm01.empresatech.example adm01
-192.168.100.201  dc01.empresatech.example dc01
-192.168.100.202  dhcp01.empresatech.example dhcp01
-192.168.100.203  fs01.empresatech.example fs01
-172.20.0.200     web01.empresatech.example web01
-172.20.0.201     sys01.empresatech.example sys01
+127.0.0.1        localhost
+192.168.100.200  adm01.empresatech.example   adm01
+192.168.100.201  dc01.empresatech.example    dc01
+192.168.100.202  dhcp01.empresatech.example  dhcp01
+192.168.100.203  fs01.empresatech.example    fs01
+172.20.0.200     web01.empresatech.example   web01
+172.20.0.201     sys01.empresatech.example   sys01
 ```
 
 ---
