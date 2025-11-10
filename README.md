@@ -35,9 +35,8 @@ O ambiente está dividido em **duas zonas principais** — **LAN** e **DMZ** —
 | Hostname | IP | Função | Serviços |
 |-----------|----|--------|-----------|
 | **ADM01** | 192.168.100.200 | Administração e Monitoramento | SSH, Ansible, Chrony (NTP)|
-| **DC01** | 192.168.100.201 | Controlador de Domínio | Samba AD DC + BIND9 (DNS interno `empresatech.example`) |
-| **DHCP01** | 192.168.100.202 | Servidor DHCP | Kea DHCP4 Server |
-| **FS01** | 192.168.100.203 | Servidor de Arquivos | Samba (membro do domínio) |
+| **DC01** | 192.168.100.201 | Controlador de Domínio | Samba AD DC + BIND9 (DNS interno `empresatech.example`) + Kea DHCP4 Server|
+| **FS01** | 192.168.100.202 | Servidor de Arquivos | Samba (membro do domínio) |
 
 ---
 
@@ -70,10 +69,9 @@ O ambiente está dividido em **duas zonas principais** — **LAN** e **DMZ** —
 
 1. **Firewall:** configurar NAT e rotas básicas.  
 2. **ADM01:** SSH, NTP e Ansible.  
-3. **DC01:** Samba AD + DNS interno.  
-4. **DHCP01:** Kea configurado apontando para DC01.  
-5. **FS01:** ingressar no domínio e configurar compartilhamentos.  
-6. **WEB01/SYS01:** configurar webserver e expor via DNAT.  
+3. **DC01:** Samba AD + DNS interno + Kea DHCP4 Server.  
+4. **FS01:** ingressar no domínio e configurar compartilhamentos.  
+5. **WEB01/SYS01:** configurar webserver e expor via DNAT.  
 
 ---
 
@@ -85,10 +83,9 @@ O ambiente está dividido em **duas zonas principais** — **LAN** e **DMZ** —
 |------------|-----------|
 | Sistema Operacional | Debian 13 (Trixie) |
 | Servidor DHCP | Kea DHCP4 |
-| Servidor DNS e Domínio | Samba AD DC + BIND9 |
+| Servidor DNS, Domínio e DHCP | Samba AD DC + BIND9 + Kea DHCP4 |
 | Servidor de Arquivos | Samba |
 | Gerenciamento | Ansible, SSH, Cockpit |
-| Monitoramento | Zabbix |
 | Firewall | nftables |
 | Sincronismo de Tempo | Chrony |
 
