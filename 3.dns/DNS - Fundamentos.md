@@ -1,7 +1,8 @@
 # DNS - Fundamentos
 
-> Fonte: [BIND 9 Administrator Reference Manual](https://bind9.readthedocs.io/en/latest/#)
-> Fonte: [DNS for Rocket Scientists](https://zytrax.com/books/dns/)
+> Fontes: 
+> - [BIND 9 Administrator Reference Manual](https://bind9.readthedocs.io/en/latest/#)
+> - [DNS for Rocket Scientists](https://zytrax.com/books/dns/)
 
 
 <br/>
