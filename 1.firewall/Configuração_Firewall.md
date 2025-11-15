@@ -26,22 +26,28 @@ sudo vim /etc/network/interfaces
 ```
 
 ```bash
-# Interface externa (WAN - Internet)
+# This file describes the network interfaces available on your system
+# and how to activate them. For more information, see interfaces(5).
+
+source /etc/network/interfaces.d/*
+
+# The loopback network interface
+auto lo
+iface lo inet loopback
+
+# WAN
 allow-hotplug enp0s3
 iface enp0s3 inet dhcp
-    description "WAN - Internet"
 
-# Interface DMZ
+# DMZ
 allow-hotplug enp0s8
 iface enp0s8 inet static
-    address 172.20.0.1/24
-    description "DMZ"
+	address 172.20.0.1/24
 
-# Interface LAN
+# LAN
 allow-hotplug enp0s9
 iface enp0s9 inet static
-    address 192.168.100.1/24
-    description "LAN interna"
+	address 192.168.100.1/24
 ```
 
 <br/>
@@ -53,7 +59,7 @@ sudo systemctl restart networking
 
 <br/>
 
-Verifique:
+Verifique os endereços IPs:
 ```bash
 ip -br a
 ```
