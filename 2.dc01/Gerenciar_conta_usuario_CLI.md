@@ -1,0 +1,223 @@
+# Gerenciando OUs, Grupos e usuários usando o linha de comando (CLI)
+
+Os comandos abaixo devem ser executados no servidor DC01.
+
+## OU - Organizational Unit (Unidade Organizacional)
+
+### Listar OUs
+
+```bash
+sudo samba-tool ou list
+```
+
+<br/>
+
+### Criar OU
+
+Criar a OU **TI**:
+```bash
+sudo samba-tool ou create OU="TI"
+```
+
+<br/>
+
+### Criar OU dentro de outra OU
+
+Criar a OU **Help Desk** dentro da OU **TI**:
+
+```bash
+sudo samba-tool ou create OU="Help Desk",OU="TI"
+```
+
+<br/>
+
+### Criar OU informando o domínio
+
+Criar a OU **Help Desk** dentro da OU **TI** no domínio **empresatech.example**:
+
+```bash
+sudo samba-tool ou create OU="Admin Redes",OU="TI",DC=empresatech,DC=example
+```
+
+<br/>
+
+### Remover uma OU
+
+Criar a OU **Help Desk** dentro da OU **TI**:
+
+```bash
+sudo samba-tool ou delete OU="Admin Redes",OU="TI"
+```
+
+<br/>
+
+---
+
+## Usuários
+
+### Listar usuários
+
+```bash
+sudo samba-tool user list
+```
+
+<br/>
+
+### Criar conta de usuário
+
+Neste exemplo estamos criando a conta do usuário **Alfredo Fredo**:
+
+```bash
+sudo samba-tool user create --must-change-at-next-login --given-name="Alfredo Fredo" alfredo
+```
+Será solicitada a senha do novo usuário.
+
+<br/>
+
+### Criar conta de usuário em massa
+
+É possível usar o comando "for" para criar usuários em massa:
+
+```bash
+for users in castilho gilmar djalma milton oreco
+do
+sudo samba-tool user create --must-change-at-next-login $users
+done
+```
+Será solicitada a senha de cada novo usuário.
+
+<br/>
+
+### Redefinir senha de usuário
+
+```bash
+sudo samba-tool user setpassword --must-change-at-next-login alfredo
+```
+
+<br/>
+
+
+### Desabilitar uma conta de usuário
+
+```bash
+sudo samba-tool user disable alfredo
+```
+
+<br/>
+
+### Habilitar uma conta de usuário
+
+```bash
+sudo samba-tool user enable alfredo
+```
+
+<br/>
+
+### Remover conta de usuário
+
+```bash
+sudo samba-tool user delete alfredo
+```
+
+<br/>
+
+--- 
+
+## Grupos
+
+### Listar grupos
+
+```bash
+sudo samba-tool group list
+```
+
+<br/>
+
+### Adicionar grupo
+
+Adicionando o grupo **Vendas**. Por padrão o grupo será criado dentro do container **Users**:
+
+```bash
+sudo samba-tool group add --description="Grupo dos usuários de Vendas" Vendas
+```
+
+<br/>
+
+### Adicionar grupo dentro de uma OU
+
+Adicionando o grupo **HelpDesk** que está dentro da OU **HelpDesk** que está dentro da OU **TI**:
+
+```bash
+sudo samba-tool group add --description="Grupo dos usuários do Suporte" --groupou=OU="Help Desk",OU="TI" HelpDesk
+```
+
+<br/>
+
+### Adicionar grupo com escopo de domínio local
+
+Adicionando o grupo **TI** que terá o escopo de domínio local: 
+
+```bash
+sudo samba-tool group add --description="Grupo dos usuários do TI" --group-scope=Domain TI
+```
+Para saber mais sobre [Grupos de segurança do Active Directory](https://learn.microsoft.com/pt-br/windows-server/identity/ad-ds/manage/understand-security-groups).
+
+
+<br/>
+
+### Adicionar grupos em massa
+
+É possível usar o comando "for" para criar grupos em massa:
+
+```bash
+for groups in Diretoria RH Financeiro
+do
+sudo samba-tool group add  $groups
+done
+```
+
+<br/>
+
+### Mover grupos
+
+Movendo o grupo **TI** para a OU **TI**:
+
+```bash
+sudo samba-tool group move TI OU="TI" 
+```
+
+
+<br/>
+
+
+### Adicionar membros a um grupo de usuários
+
+Adicionando os usuários **castilho** e **milton** ao grupo **Diretoria**:
+
+```bash
+sudo samba-tool group addmembers Diretoria castilho,milton
+```
+
+<br/>
+
+
+### Listar os membros de um grupo de usuários
+
+Listando os membros do grupo **Diretoria**:
+
+```bash
+sudo samba-tool group listmembers Diretoria 
+```
+
+<br/>
+
+
+### Remover um membros de um grupo de usuários
+
+Removendo o membro **milton** do grupo **Diretoria**:
+
+```bash
+sudo samba-tool group removemembers Diretoria milton
+```
+
+<br/>
