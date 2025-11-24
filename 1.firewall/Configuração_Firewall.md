@@ -237,44 +237,12 @@ sudo systemctl start nftables
 
 ---
 
-## 🧪 Testes de Conectividade
-
-| Origem | Destino | Comando de Teste | Esperado |
-|---------|----------|------------------|-----------|
-| LAN | Internet | `ping 8.8.8.8` | ✅ Resposta |
-| LAN | WEB01 | `ping 172.20.0.200` | ✅ Resposta |
-| LAN | SYS01 | `curl 172.20.0.201:8080` | ✅ Conexão |
-| Internet | WEB01 | Acesso via navegador à porta 80/443 | ✅ Página exibida |
-| Internet | SYS01 | Acesso via navegador à porta 8080 | ✅ Aplicação responde |
-
----
-
 ## 🪵 Logs de Segurança
 
 Visualizar registros de pacotes bloqueados:
 ```bash
 sudo journalctl -k -f | grep FIREWALL
 ```
----
-
-## 🧭 Funções Resumidas
-
-| Função | Descrição |
-|--------|------------|
-| NAT (Masquerade) | Permite LAN e DMZ acessarem a Internet |
-| DNAT | Publica servidores WEB01 e SYS01 externamente |
-| Filtragem | Controla acesso SSH, ICMP e conexões internas |
-| Log | Gera registros de pacotes bloqueados |
-| Roteamento | Interliga LAN ↔ DMZ ↔ WAN |
-
----
-
-## 📄 Informações Complementares
-
-- Interface **WAN**: `enp0s3` (DHCP público)  
-- Interface **DMZ**: `enp0s8` → `172.20.0.1/24`  
-- Interface **LAN**: `enp0s9` → `192.168.100.1/24`  
-
 ---
 
 ## 👨‍💻 Autor
