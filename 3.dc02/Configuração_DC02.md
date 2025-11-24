@@ -57,6 +57,7 @@ Edite o arquivo `/etc/resolv.conf`:
 ```
 nameserver  192.168.100.201
 nameserver  192.168.100.200
+domain      empresatech.example
 search      empresatech.example
 ```
 
@@ -179,6 +180,8 @@ Em seguida use o comando abaixo para verificar o ticket Kerberos criado com o co
 ```bash
 klist
 ```
+Kerberos é o sistema de autenticação usado pelo Active Directory.
+É um comando usado para ver os tickets Kerberos que estão armazenados no computador.
 
 <br/>
 
@@ -219,14 +222,13 @@ Ingressar o servidor DC02 no domínio:
 sudo samba-tool domain join empresatech.example DC --dns-backend=SAMBA_INTERNAL -U "EMPRESATECH\Administrator"
 ```
 
-<br/>
-
-Caso queira alterar a senha de administrador:
-
-```bash
-sudo samba-tool user userpassword administrator
-```
+- **samba-tool domain join**: Instrução para ingressar o servidor no domínio.
+- **empresatech.example**: É o realm/DNS do domínio AD ao qual o novo servidor vai se juntar.
+- **DC**: Define o papel do servidor. *DC* significa que o servidor será um Controlador de Domínio.
+- **--dns-backend=SAMBA_INTERNAL**: Define qual DNS o novo DC usará. *SAMBA_INTERNAL* é o DNS interno do Samba
+- **-U "EMPRESATECH\Administrator"**: Usuário usado para autenticar a entrada no domínio.
 ---
+
 
 ## 🌍 6. Configuração do DNS Interno do Samba
 
@@ -239,7 +241,7 @@ Acesse o arquivo de configuração do Samba `/etc/samba/smb.conf` e insira o par
 	realm = EMPRESATECH.EXAMPLE
 	server role = active directory domain controller
 	workgroup = EMPRESATECH
-  dns forwarder = 8.8.8.8
+	dns forwarder = 8.8.8.8
 
 [sysvol]
 	path = /var/lib/samba/sysvol
