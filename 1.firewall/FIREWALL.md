@@ -1,116 +1,101 @@
-# 🔥 Servidor FIREWALL - EmpresaTech
+# FIREWALL – Servidor de Borda (NAT + Filtro de Pacotes)
 
-**Sistema Operacional:** Debian 13 (Trixie)  
-**Função:** Gateway e proteção entre LAN, DMZ e Internet  
-**Ferramenta de Firewall:** nftables  
+## 1. Visão Geral
 
----
+Este servidor funciona como **gateway** entre:
 
-## 📘 Visão Geral
-
-O servidor **FIREWALL** é o primeiro a ser configurado na infraestrutura da EmpresaTech.  
-Sua função é **interligar e proteger** as redes LAN e DMZ, além de **fornecer acesso à Internet** através de **NAT (masquerade)**.  
-Também realiza o **DNAT** para permitir que servidores da DMZ (WEB01 e SYS01) sejam acessados externamente.
-
----
-
-## 🌐 Configuração das Interfaces de Rede
+- **Internet (WAN)** – recebe IP via DHCP  
+- **DMZ (172.20.0.0/24)** – onde ficam os servidores WEB01 e SYS01  
+- **LAN (192.168.100.0/24)** – rede interna da empresa  
 
 <br/>
 
+Funções principais:
 
-Edite o arquivo `/etc/network/interfaces` com o conteúdo abaixo:
+- Fazer **NAT (masquerade)** para que a LAN e a DMZ acessem a Internet.
+- Controlar o tráfego entre **LAN ↔ DMZ** e **LAN/DMZ ↔ Internet** usando **nftables**.
+- Ser o **gateway padrão** para as redes LAN e DMZ.
 
-```bash
-sudo vim /etc/network/interfaces
-```
+<br/>
 
-```bash
-# This file describes the network interfaces available on your system
-# and how to activate them. For more information, see interfaces(5).
+Interfaces sugeridas:
 
-source /etc/network/interfaces.d/*
+- enp0s3 → WAN  
+- enp0s8 → DMZ  
+- enp0s9 → LAN  
 
-# The loopback network interface
+---
+
+## 2. Pré-requisitos
+
+- Debian 13 “Trixie”
+- 3 interfaces configuradas no VirtualBox
+- Acesso root/sudo
+
+---
+
+## 3. Configuração de Rede
+
+### 3.1 Arquivo `/etc/network/interfaces`
+
+```ini
 auto lo
 iface lo inet loopback
 
-# WAN
-allow-hotplug enp0s3
+auto enp0s3
 iface enp0s3 inet dhcp
 
-# DMZ
-allow-hotplug enp0s8
+auto enp0s8
 iface enp0s8 inet static
-	address 172.20.0.1/24
+    address 172.20.0.1
+    netmask 255.255.255.0
 
-# LAN
-allow-hotplug enp0s9
+auto enp0s9
 iface enp0s9 inet static
-	address 192.168.100.1/24
+    address 192.168.100.1
+    netmask 255.255.255.0
 ```
 
 <br/>
 
-Após salvar, reinicie as interfaces:
-```bash
+Aplicar:
+
+```
 sudo systemctl restart networking
-```
-
-<br/>
-
-Verifique os endereços IPs:
-```bash
-ip -br a
 ```
 
 ---
 
-## ⚙️ Habilitar Roteamento IPv4
+## 4. Habilitar Roteamento
 
-Edite o arquivo de configuração do kernel:
-
-<br/>
-
-```bash
-sudo vim /etc/sysctl.d/99-custom-forwarding.conf
+```conf
+# /etc/sysctl.d/99-sysctl.conf
+net.ipv4.ip_forward = 1
 ```
 
 <br/>
 
-Adicione a linha:
-```bash
-net.ipv4.ip_forward=1
+Aplicar:
+
 ```
-
-<br/>
-
-Aplicar a alteração:
-```bash
 sudo sysctl --system
 ```
 
 ---
 
-## 🧱 Instalação do nftables
+## 5. Instalação do nftables
 
-```bash
-sudo apt install nftables -y
+```
+sudo apt update
+sudo apt install -y nftables
+sudo systemctl enable --now nftables
 ```
 
 ---
 
-## 🧩 Configuração Principal `/etc/nftables.conf`
+## 6. Configuração `/etc/nftables.conf`
 
-```bash
-sudo vim /etc/nftables.conf
-```
-
-<br/>
-
-Conteúdo completo e comentado:
-
-```bash
+```nft
 #!/usr/sbin/nft -f
 
 # Apaga completamente o conjunto de regras anteriores
@@ -208,47 +193,30 @@ table ip nat {
 }
 ```
 
----
-
-## 🚀 Aplicar e Validar
-
-Carregar a configuração:
-
-```bash
-sudo nft -f /etc/nftables.conf
-```
-
 <br/>
 
-Listar as regras:
+Aplicar:
 
-```bash
+```
+sudo nft -f /etc/nftables.conf
 sudo nft list ruleset
 ```
 
+---
+
+## 7. Testes
+
+### Firewall:
+```
+ping -c 4 8.8.8.8
+ping -c 4 google.com
+```
+
 <br/>
 
-Inicializar o serviço do `nftables`
-
-```bash
-sudo systemctl enable nftables
-sudo systemctl start nftables
-```
-
 ---
 
-## 🪵 Logs de Segurança
+## 8. Notas
 
-Visualizar registros de pacotes bloqueados:
-```bash
-sudo journalctl -k -f | grep FIREWALL
-```
----
-
-## 👨‍💻 Autor
-
-**Fernando Dias**  
-Docente de Redes e Infraestrutura de Computadores  
-📘 *Ambiente didático para as UCs de Redes e Servidores Linux*  
-
----
+- Ajuste o nome das interfaces com `ip a`
+- Para limpar regras: `sudo nft flush ruleset`
