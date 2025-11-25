@@ -1,109 +1,62 @@
-# 🏢 Infraestrutura de Servidores - EmpresaTech
+# Infraestrutura de Servidores Linux – Projeto Educacional
 
-<br/>
+Este repositório faz parte de um projeto educacional desenvolvido para alunos iniciantes na área de Redes de Computadores e Administração de Sistemas Linux.  
+O objetivo é fornecer **documentação detalhada, passo-a-passo**, para que qualquer aluno consiga reproduzir em laboratório toda a infraestrutura de servidores apresentada nas aulas.
 
-## 📘 Visão Geral
-Este repositório documenta a infraestrutura da **rede corporativa da EmpresaTech**, composta por servidores **Linux** e clientes **múltiplas plataformas (Linux e Windows)**.  
-O ambiente está dividido em **duas zonas principais** — **LAN** e **DMZ** — e protegido por um **Firewall** que realiza NAT e controle de tráfego entre as redes internas e a Internet.
+A infraestrutura utiliza **Debian 13 "Trixie"**, virtualizada em **VirtualBox**, e inclui servidores essenciais como DHCP, DNS, Active Directory (Samba 4), File Server e Firewall com Nftables.  
+Os clientes da rede são máquinas Windows 10/11 e Linux com interface gráfica Gnome.
 
----
+## Topologia da Rede
+![Topologia da Rede](diag_rede_linux.jpg)
 
-<br/>
+## Objetivos do Projeto
+- Ensinar os fundamentos e a prática de administração de servidores Linux.
+- Demonstrar como construir uma infraestrutura corporativa completa em laboratório.
+- Fornecer documentação clara e acessível para iniciantes.
+- Servir como material de apoio educacional.
 
-## 🧩 Topologia de Rede
+## Componentes da Infraestrutura
 
-![Topologia da rede](diag_rede_linux.jpg)
+### Firewall
+- WAN: DHCP Client  
+- DMZ: 172.20.0.1/24  
+- LAN: 192.168.100.1/24  
+- Serviço: Nftables
 
----
+### DMZ
+- WEB01 – 172.20.0.200  
+- SYS01 – 172.20.0.201 (porta 8080)
 
-<br/>
+### LAN
+- DC01 – 192.168.100.200 (Samba4 + Bind9)  
+- DC02 – 192.168.100.201  
+- DHCP01 – 192.168.100.202 (Kea DHCP4)  
+- FS01 – 192.168.100.203 (Samba4 File Server)
 
-## 🌐 Redes
+## Estrutura do Repositório
+docs/
+├── FIREWALL/  
+├── DC01/  
+├── DC02/  
+├── DHCP01/  
+├── FS01/  
+└── CLIENTES/
 
-| Segmento | Faixa | Gateway | Descrição |
-|-----------|--------|----------|-----------|
-| **LAN** | `192.168.100.0/24` | `192.168.100.1` | Rede interna (servidores e clientes) |
-| **DMZ** | `172.20.0.0/24` | `172.20.0.1` | Rede exposta à Internet |
-| **WAN** | DHCP (IP público) | — | Interface externa do firewall |
+## Tecnologias Utilizadas
+- Debian 13  
+- Samba 4  
+- Bind9  
+- Kea DHCP  
+- Nftables  
+- Chrony  
+- Windows 10/11  
+- GNOME
 
----
-
-<br/>
-
-## 🖥️ Servidores da LAN
-
-| Hostname | IP | Função | Serviços |
-|-----------|----|--------|-----------|
-| **DC01** | 192.168.100.200 | Controlador de Domínio Primário | Samba AD DC + BIND9 (DNS interno `empresatech.example`)|
-| **DC02** | 192.168.100.201 | Controlador de Domínio Secundário | Samba AD DC + BIND9 (DNS interno `empresatech.example`)|
-| **DHCP01** | 192.168.100.202 | Servidor DHCP | Kea DHCP4 Server|
-| **FS01** | 192.168.100.203 | Servidor de Arquivos | Samba (membro do domínio) |
-
----
-
-<br/>
-
-## 🌍 Servidores da DMZ
-
-| Hostname | IP | Função | Serviços |
-|-----------|----|--------|-----------|
-| **WEB01** | 172.20.0.200 | Servidor Web Público | Nginx (porta 80/443) |
-| **SYS01** | 172.20.0.201 | Sistema CRUD | Backend (porta 8080) |
-
----
-
-<br/>
-
-## 🔥 Firewall
-
-| Interface | IP | Rede | Função |
-|------------|----|------|---------|
-| **WAN** | DHCP (dinâmico) | Internet | Interface externa |
-| **DMZ** | 172.20.0.1 | DMZ | Controle de entrada/saída |
-| **LAN** | 192.168.100.1 | LAN | Gateway interno e NAT |
+## Como Usar
+1. Acesse o diretório do servidor desejado.
+2. Siga o README.md específico.
+3. Valide os testes propostos.
+4. Continue até montar toda a infraestrutura.
 
 ---
 
-<br/>
-
-## 🧭 Ordem de Implantação
-
-1. **Firewall**: configurar NAT e rotas básicas.   
-2. **DC01**: Samba AD + DNS interno  
-3. **DC02**: Samba AD + DNS interno
-4. **DHCP01**: Kea DHCP4 Server
-5. **FS01**: Ingressar no domínio e configurar compartilhamentos.  
-6. **WEB01/SYS01**: Configurar webserver e expor via DNAT.  
-
----
-
-<br/>
-
-## 🧰 Ferramentas Utilizadas
-
-| Categoria | Software |
-|------------|-----------|
-| Sistema Operacional | Debian 13 (Trixie) |
-| Servidor DHCP | Kea DHCP4 |
-| Servidor DNS, Domínio e DHCP | Samba AD DC + BIND9 + Kea DHCP4 |
-| Servidor de Arquivos | Samba |
-| Firewall | nftables |
-| Sincronismo de Tempo | Chrony |
-
----
-
-<br/>
-
-## 🧾 Autor
-
-**Fernando Dias**  
-Docente de Redes e Infraestrutura de Computadores  
-💻 *Ambiente didático e técnico para aulas de manutenção e servidores Linux.*
-
----
-
-<br/>
-
-> 📦 **Repositório criado para estudos de infraestrutura de redes locais e serviços Linux integrados.**
->  
-> 🔄 Pode ser utilizado como base para as UCs de **Redes**, **Serviços de Infraestrutura**, e **Administração de Servidores** no curso Técnico em Informática ou Redes.
