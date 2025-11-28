@@ -33,15 +33,6 @@ Os clientes da rede são máquinas Windows 10/11 e Linux com interface gráfica 
 - DHCP01 – 192.168.100.202 (Kea DHCP4)  
 - FS01 – 192.168.100.203 (Samba4 File Server)
 
-## Estrutura do Repositório
-docs/
-├── FIREWALL/  
-├── DC01/  
-├── DC02/  
-├── DHCP01/  
-├── FS01/  
-└── CLIENTES/
-
 ## Tecnologias Utilizadas
 - Debian 13  
 - Samba 4  
@@ -54,7 +45,7 @@ docs/
 
 ## Como Usar
 1. Acesse o diretório do servidor desejado.
-2. Siga o README.md específico.
+2. Siga o arquivo `.md` específico.
 3. Valide os testes propostos.
 4. Continue até montar toda a infraestrutura.
 
