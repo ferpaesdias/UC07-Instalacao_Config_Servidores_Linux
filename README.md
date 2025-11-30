@@ -1,134 +1,92 @@
-# 🖥️ UC07 – Planejar e Executar a Instalação, Configuração e Monitoramento de Servidores
+# 🐧 Projeto: Infraestrutura de Redes Linux (Debian 13)
+
+Bem-vindo ao laboratório prático de Infraestrutura de Redes **Empresa Tech**.
+
+Este projeto é um guia educacional passo-a-passo destinado a estudantes de redes e administração de sistemas. O objetivo é simular um ambiente corporativo real, construindo uma infraestrutura completa baseada em **Linux Debian 13 "Trixie"**, desde o firewall de borda até ao controlador de domínio e servidor de arquivos.
 
 <br/>
 
-Repositório de apoio às aulas da **UC07** dos cursos **Técnico em Manutenção e Suporte em Informática**, **Técnico em Informática** e **Técnico em Redes** (UC03).  
-
-Este repositório contém **scripts, arquivos de configuração, guias e exemplos práticos** utilizados nas aulas para o desenvolvimento das competências ligadas à **administração de sistemas operacionais de rede (servidores)** em ambientes locais e virtualizados.
+## 🎯 Objetivo Educacional
+Ao concluir este projeto, o aluno será capaz de:
+* Configurar interfaces de rede e roteamento estático em Linux.
+* Implementar um **Firewall** de borda seguro com *Nftables*.
+* Configurar um **Controlador de Domínio (Active Directory)** usando *Samba 4*.
+* Gerenciar serviços essenciais como **DNS** (Bind9) e **DHCP** (Kea).
+* Configurar um **Servidor de Arquivos** integrado ao domínio com permissões avançadas.
+* Realizar troubleshooting e validação de serviços de rede.
 
 ---
 
-<br/>
+## 🏗️ Topologia e Cenário
 
-## 🌐 Topologia da Infraestrutura
+A "Empresa Tech" possui uma infraestrutura dividida em três zonas de rede:
+1.  **WAN (Internet):** Conexão externa.
+2.  **DMZ (172.20.0.0/24):** Zona Desmilitarizada para servidores expostos (Web).
+3.  **LAN (192.168.100.0/24):** Rede interna segura onde residem os dados e usuários.
 
-A arquitetura de rede utilizada nos laboratórios da UC07 é composta por três zonas principais: **WAN**, **DMZ** e **LAN (Clientes)**, separadas por um **firewall** configurado com **nftables**.
-
-![Infraestrutura de Rede](diag_rede_linux.jpg)
-
-No VirtualBox iremos utilizar os seguinte tipos de interface de rede:
-  
-- **Internet**: Rede Bridge ou NAT
-- **DMZ**: Rede Interna (DMZ)
-- **LAN Clientes**: Rede Interna (Empresa)
+![Diagrama de Rede](diag_rede_linux.jpg)
 
 <br/>
 
-### 🔹 Descrição da Topologia
+### 🖥️ Inventário de Servidores
 
-| Zona | Hostname | Função | Endereço IP |
-|------|--------------|--------|-------------|
-| **Internet** | Firewall | Conexão com a Internet (**nftables**) | |
-| | | | WAN: DHCP Client |
-| | | | DMZ: `10.0.2.1/24` |
-| | | | LAN: `10.0.3.1/24` |
-| **DMZ (10.0.2.0/24)** | | |  |
-| | WEB01 | Servidor **Web (Nginx)** | `10.0.2.200` |
-| **LAN Empresa (10.0.3.0/24)** | | | |
-| | DHCP01 | Servidor **DHCP (Kea/ISC)** – range `10.0.3.11-199` | `10.0.3.200` |
-| | DNS01 | Servidor **DNS (Bind9)** | `10.0.3.201` |
-| | FILESRV01 | Servidor **File Server (Samba)** | `10.0.3.202` |
-| | SRV03 | Servidor **LDAP (OpenLDAP)** | `10.0.3.203` |
-| | PC01 | Estação Cliente | IP dinâmico (DHCP) |
+| Hostname | IP (LAN) | IP (DMZ) | Função | Tecnologia |
+| :--- | :--- | :--- | :--- | :--- |
+| **Firewall** | `192.168.100.1` | `172.20.0.1` | Gateway, NAT, Filtro de Pacotes | Nftables |
+| **DC01** | `192.168.100.200` | - | Controlador de Domínio Primário (AD/DNS) | Samba 4, Bind9 |
+| **DC02** | `192.168.100.201` | - | Controlador de Domínio Secundário | Samba 4 |
+| **DHCP01** | `192.168.100.202` | - | Servidor de DHCP | Kea-DHCP4 |
+| **FS01** | `192.168.100.203` | - | Servidor de Arquivos | Samba 4 |
 
 ---
 
-<br/>
+## 👥 Estrutura Organizacional
 
-## 🎯 Objetivo da UC 
-Capacitar o estudante para **planejar, instalar, configurar e monitorar sistemas operacionais de rede**, garantindo a segurança, o desempenho e a disponibilidade dos serviços.
+O ambiente simula departamentos reais com usuários fictícios para testar permissões e políticas.
 
----
-
-<br/>
-
-## 🧩 Competência
-Planejar e executar a instalação, a configuração e o monitoramento de sistemas operacionais de redes locais (servidores).
-
----
-
-<br/>
-
-## 📊 Indicadores de Desempenho
-- Instala sistemas operacionais em servidores conforme normas técnicas e políticas de segurança.  
-- Configura e gerencia serviços de rede (DNS, DHCP, Web, LDAP, Firewall).  
-- Monitora servidores e serviços, aplicando técnicas de diagnóstico e resolução de problemas.  
-- Registra e documenta configurações e intervenções realizadas.  
+* **Domínio:** `empresatech.example`
+* **Departamentos:**
+    * 📂 **Vendas:** (Ex: Valter Gateway Perdido, Débora Buffer Overflow)
+    * 📂 **Financeiro:** (Ex: Zé do DHCP Maluco, Tânia Packet Loss)
+    * 📂 **TI:** (Ex: Adalberto Kernel Panela, Neide Loop Infinito)
+    * 📂 **Suporte:** (Ex: Belarmino VLAN Fantasma, Juvêncio Firewall Furado)
+    * 📂 **RH:** (Ex: Clésio DNS Travado, Fabiana Latência Braba)
 
 ---
 
-<br/>
+## 🛠️ Tecnologias e Requisitos
 
-## 🧠 Temas Principais
+Para reproduzir este laboratório, você precisará de um ambiente de virtualização.
 
-| Tema | Descrição |
-|------|------------|
-| **Administração de Servidores Linux** | Instalação, configuração e hardening de sistemas Debian/Ubuntu. |
-| **Serviços de Rede** | DNS, DHCP, LDAP, HTTP/HTTPS, Samba. |
-| **Gerência de Usuários e Domínios** | Criação de usuários, grupos, permissões e autenticação centralizada via **LDAP**. |
-| **Firewall e Segurança** | Controle de tráfego com **nftables** e análise de logs. |
-| **Monitoramento de Recursos** | Instalação e uso de ferramentas como **Zabbix Agent**, **htop**, **ss**, **journalctl** e **systemd-analyze**. |
-| **Virtualização e Testes** | Uso de **VirtualBox** e **Hyper-V** para simular servidores e redes locais. |
-
----
+### Software
+* **Virtualizador:** VirtualBox, VMware Workstation ou Proxmox.
+* **SO Servidores:** Imagem ISO do [Debian 13 (Testing/Trixie)](https://www.debian.org/devel/debian-installer/).
+* **Clientes:** Windows 10/11 ou Linux com Interface Gráfica (Gnome/KDE).
 
 <br/>
 
-## 🧪 Laboratórios Práticos
-
-| Serviço | Objetivo | Ferramentas |
-|----------|-----------|-------------|
-| **DNS (BIND9)** | Criar e gerenciar zonas de resolução direta e reversa. | `named.conf`, `dig`, `nslookup` |
-| **DHCP (Kea / ISC)** | Automatizar a atribuição de endereços IP e reservas fixas. | `kea-dhcp4`, `dhcpd.conf` |
-| **Firewall (nftables)** | Controlar acesso entre as zonas LAN/DMZ/WAN e registrar logs. | `nft`, `/etc/nftables.conf` |
-| **Servidor Web (Nginx)** | Hospedar sites internos e testar a comunicação entre sub-redes. | `Nginx`, `curl` |
-| **LDAP (slapd)** | Gerenciar autenticação centralizada de usuários em rede. | `ldapadd`, `slapcat`, `ldif` |
-| **Monitoramento (Zabbix Agent)** | Acompanhar desempenho e disponibilidade dos serviços. | `zabbix-agent`, `ps`, `ss` |
+### Hardware Recomendado (Mínimo por VM)
+* **Firewall:** 1 vCPU, 1 GB RAM, 15GB HD (3 Placas de Rede).
+* **Servidores (Sem GUI):** 1 vCPU, 1 GB RAM, 15GB HD.
+* **Clientes:** 2 vCPU, 4GB RAM.
 
 ---
 
-<br/>
+## 🚀 Como usar este guia
 
-## 🧾 Recursos Utilizados em Aula
-- **Distribuição base:** Debian 13 (Trixie)  
-- **Ferramentas de virtualização:** VirtualBox / Hyper-V  
-- **Monitoramento:** Zabbix Server + Agent  
-- **Editor de texto:** Nano / Vim  
+Este repositório está organizado por servidor. Recomenda-se seguir a implementação na seguinte ordem lógica para garantir que as dependências (como DNS e Gateway) estejam funcionais:
 
----
-
-<br/>
-
-## 👨‍🏫 Docente Responsável
-**Fernando Dias**  
-Docente da área de Redes e Infraestrutura
+1.  [Configuração do Firewall](1.firewall/Configuração_Firewall.md) 🛡️ *(Gateway e Internet)*
+2.  [Configuração do DC01](2.dc01/Configuração_DC01.md) 👑 *(Identidade e DNS)*
+3.  [Configuração do DHCP01](3.dhcp01/Configuração_DHCP01.md) 📡 *(Distribuição de IPs)*
+4.  [Configuração do DC02](4.dc02/Configuração_DC02.md) 🔄 *(Redundância)*
+5.  [Configuração do FS01](5.fs01/Configuração_FS01.md) 📂 *(Arquivos e Permissões)*
 
 ---
 
-<br/>
+## 📝 Licença
 
-## 🤝 Contribuições
-Os alunos podem:
-- Propor melhorias nos scripts e arquivos de configuração;  
-- Corrigir erros encontrados durante os testes;  
-- Adicionar documentação complementar de boas práticas.  
+Este projeto é de código aberto e destinado fins educacionais. Sinta-se à vontade para fazer fork, contribuir e usar em suas aulas ou estudos.
 
 ---
-
-<br/>
-
-## 🏁 Licença
-Material de uso **educacional**.  
-Distribuído sob a licença **Creative Commons CC BY-NC-SA 4.0** – uso não comercial e compartilhamento com atribuição.
-
----
+*Desenvolvido como material de apoio para aulas de Infraestrutura de Redes.*
