@@ -302,8 +302,3 @@ samba-tool ou create "OU=Publico"
 ```
 
 ---
-
-## 12. ✔️ Conclusão
-
-O **DC01** está totalmente configurado como Controlador de Domínio Primário.
-
