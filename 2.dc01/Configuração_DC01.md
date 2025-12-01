@@ -279,7 +279,7 @@ _ldap._tcp.empresatech.example has SRV record 0 100 389 dc01.empresatech.example
 kinit administrator
 ``` 
 
-(Digite a senha `SenhaForte123!`). Se não der erro, funcionou. Verifique o ticket com o coomando:
+(Digite a senha `SenhaForte123!`). Se não der erro, funcionou. Verifique o ticket com o comando:
 
 
 ```bash
