@@ -305,5 +305,7 @@ Valid starting       Expires              Service principal
 ```bash
 ping -c 2 google.com
 ``` 
+
 Isso confirma que o **Bind9** está encaminhando consultas externas para o `8.8.8.8` corretamente.
+
 ---
