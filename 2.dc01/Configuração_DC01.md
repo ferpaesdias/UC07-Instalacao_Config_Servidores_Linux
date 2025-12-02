@@ -19,11 +19,7 @@ Esta documentação detalha a configuração do Controlador de Domínio Primári
 
 O Controlador de Domínio DEVE ter um IP estático.
 
-<br/>
-
-**Arquivo**: `/etc/network/interfaces`
-
-Edite este arquivo com o conteúdo abaixo:
+Edite o arquivo `/etc/network/interfaces` com o conteúdo abaixo:
 
 ```bash
 # Interface de Loopback
@@ -43,31 +39,27 @@ iface enp0s3 inet static
     dns-search empresatech.example
 ```
 
-<br/>
-
 Reinicie a rede para aplicar:
 
 ```bash
 systemctl restart networking
-``` 
-<br/>
+```
 
-**Configurar Hostname**
+### Configurar Hostname
 
-O Samba é sensível ao nome da máquina. 
+O Samba é sensível ao nome da máquina.
 
 ```bash
 hostnamectl set-hostname dc01
-``` 
-
-<br/>
+```
 
 Edite o arquivo `/etc/hosts` para garantir que o servidor saiba quem ele é:
 
 ```bash
 127.0.0.1       localhost
 192.168.100.200 dc01.empresatech.example dc01
-``` 
+```
+
 ---
 
 ## 3. Instalação de Pré-requisitos e Samba
@@ -79,15 +71,11 @@ apt update
 apt install samba smbclient krb5-config krb5-user winbind bind9 bind9-utils python3-setproctitle -y
 ```
 
-<br/>
-
 ⚠️ **Atenção durante a instalação**: Uma tela pode aparecer pedindo o "Realm" do Kerberos.
+
 - **Realm Kerberos versão 5 padrão**: `EMPRESATECH.EXAMPLE`
 - **Servidores Kerberos para seu realm**: `dc01.empresatech.example`
 - **Servidor administrativo para seu realm Kerberos**: `dc01.empresatech.example`
-
-
-<br/>
 
 Acesse o arquivo `/etc/network/interfaces` e altere a linha `dns-nameservers 8.8.8.8` para `dns-nameservers 127.0.0.1`.
 
@@ -95,36 +83,32 @@ Reinicie o serviço de rede para aplicar a configuração:
 
 ```bash
 systemctl restart networking
-``` 
+```
+
 ---
 
 ## 4. Provisionamento do Domínio
 
 Agora vamos transformar este servidor comum em um Controlador de Domínio.
 
-<br/>
-
 1. Fazer backup da configuração original (por segurança)
 
-```bash
-mv /etc/samba/smb.conf /etc/samba/smb.conf.orig
-```
+   ```bash
+   mv /etc/samba/smb.conf /etc/samba/smb.conf.orig
+   ```
 
-<br/>
-
-2. **Provisionar o Domínio**: Execute o comando abaixo. Ele cria a base de dados de usuários e configura o DNS automaticamente. 
+2. **Provisionar o Domínio**: Execute o comando abaixo. Ele cria a base de dados de usuários e configura o DNS automaticamente.
 Definiremos a senha de `administrator` como `SenhaForte123!` para fins educativos.
 
-
-```bash
-samba-tool domain provision \
-    --server-role=dc \
-    --use-rfc2307 \
-    --dns-backend=BIND9_DLZ \
-    --realm=EMPRESATECH.EXAMPLE \
-    --domain=EMPRESATECH \
-    --adminpass='SenhaForte123!'
-```
+   ```bash
+   samba-tool domain provision \
+       --server-role=dc \
+       --use-rfc2307 \
+       --dns-backend=BIND9_DLZ \
+       --realm=EMPRESATECH.EXAMPLE \
+       --domain=EMPRESATECH \
+       --adminpass='SenhaForte123!'
+   ```
 
 ---
 
@@ -132,11 +116,9 @@ samba-tool domain provision \
 
 Esta é a parte crítica. O Bind9 precisa "enxergar" os arquivos do Samba.
 
-<br/>
+### Configuração Global
 
-### A. Configuração Global `/etc/bind/named.conf.options`
-
-Substitua o conteúdo por:
+Substitua o conteúdo do arquivo `/etc/bind/named.conf.options` por:
 
 ```bash
 options {
@@ -164,17 +146,16 @@ options {
 };
 ```
 
-<br/>
-
-### B. Incluir a Zona do Samba `/etc/bind/named.conf.local`
+### Incluir a Zona do Samba
 
 Precisamos dizer ao Bind onde está o arquivo de zona que o Samba criou.
 
-Substitua o conteúdo por:
+Substitua o conteúdo do arquivo `/etc/bind/named.conf.local` por:
 
 ```bash
 include "/var/lib/samba/bind-dns/named.conf";
-``` 
+```
+
 ---
 
 ## 6. Inicialização dos Serviços
@@ -194,7 +175,7 @@ systemctl disable smbd nmbd winbind
 systemctl unmask samba-ad-dc
 systemctl enable samba-ad-dc
 systemctl start samba-ad-dc
-``` 
+```
 
 ---
 
@@ -234,78 +215,67 @@ criar_user "Adalberto" "TI" "Kernel Panela"
 criar_user "Clesio" "RH" "DNS Travado"
 
 echo "--- Concluído! ---"
-``` 
+```
+
 ---
 
 ## 8. Validação e Testes
 
 Agora vamos validar se o Bind9 e o Samba estão conversando corretamente.
 
-<br/>
-
 1. Testar resolução DNS (Bind9):
 
-```bash
-host dc01.empresatech.example
-``` 
+   ```bash
+   host dc01.empresatech.example
+   ```
 
-Deve retornar:
+   Deve retornar:
 
-```bash
-dc01.empresatech.example has address 192.168.100.200
-``` 
-
-<br/>
-
+   ```bash
+   dc01.empresatech.example has address 192.168.100.200
+   ```
 
 2. Testar registros SRV (Essenciais para o AD):
 
-```bash
-host -t SRV _ldap._tcp.empresatech.example
-``` 
+   ```bash
+   host -t SRV _ldap._tcp.empresatech.example
+   ```
 
-Deve retornar:
+   Deve retornar:
 
-```bash
-_ldap._tcp.empresatech.example has SRV record 0 100 389 dc01.empresatech.example.
-``` 
-
-<br/>
-
+   ```bash
+   _ldap._tcp.empresatech.example has SRV record 0 100 389 dc01.empresatech.example.
+   ```
 
 3. Testar Kerberos: Vamos tentar obter um ticket de autenticação para o `administrador`.
 
-```bash
-kinit administrator
-``` 
+   ```bash
+   kinit administrator
+   ```
 
-(Digite a senha `SenhaForte123!`). Se não der erro, funcionou. Verifique o ticket com o comando:
+   (Digite a senha `SenhaForte123!`). Se não der erro, funcionou. Verifique o ticket com o comando:
 
+   ```bash
+   klist
+   ```
 
-```bash
-klist
-``` 
+   Deve retornar uma mensagem semelhante a abaixo:
 
-Deve retornar uma mensagem semelhante a abaixo:
-
-```bash
-Ticket cache: FILE:/tmp/krb5cc_0
-Default principal: administrator@EMPRESATECH.EXAMPLE
-
-Valid starting       Expires              Service principal
-30/11/2025 19:02:42  01/12/2025 05:02:42  krbtgt/EMPRESATECH.EXAMPLE@EMPRESATECH.EXAMPLE
-	renew until 01/12/2025 19:02:36
-``` 
-
-<br/>
-
+   ```bash
+   Ticket cache: FILE:/tmp/krb5cc_0
+   Default principal: administrator@EMPRESATECH.EXAMPLE
+   
+   Valid starting       Expires              Service principal
+   30/11/2025 19:02:42  01/12/2025 05:02:42  krbtgt/EMPRESATECH.EXAMPLE@EMPRESATECH.EXAMPLE
+    renew until 01/12/2025 19:02:36
+   ```
 
 4. Teste de Navegação (Forwarding):
 
-```bash
-ping -c 2 google.com
-``` 
+   ```bash
+   ping -c 2 google.com
+   ```
 
-Isso confirma que o **Bind9** está encaminhando consultas externas para o `8.8.8.8` corretamente.
+  Isso confirma que o **Bind9** está encaminhando consultas externas para o `8.8.8.8` corretamente.
 
 ---
