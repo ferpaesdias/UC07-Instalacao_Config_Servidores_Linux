@@ -133,7 +133,11 @@ options {
     dnssec-validation auto;
 
     # Permitir consultas apenas da nossa rede interna e local
-    allow-query { localhost; 192.168.100.0/24; 172.20.0.0/24; };
+    allow-query { 
+        localhost; 
+        192.168.100.0/24; 
+        172.20.0.0/24; 
+    };
     
     # Habilitar recursão (necessário para clientes navegarem)
     recursion yes;
@@ -142,7 +146,9 @@ options {
     tkey-gssapi-keytab "/var/lib/samba/bind-dns/dns.keytab";
     minimal-responses yes;
 
-    listen-on-v6 { any; };
+    listen-on-v6 { 
+        any; 
+    };
 };
 ```
 
@@ -215,6 +221,16 @@ criar_user "Adalberto" "TI" "Kernel Panela"
 criar_user "Clesio" "RH" "DNS Travado"
 
 echo "--- Concluído! ---"
+```
+
+Configure o arquivo com permissão de execução e o execute
+
+```bash
+# Permissão de execução
+chmod +x criar_usuarios.sh
+
+# Executar o script
+./criar_usuarios.sh
 ```
 
 ---
