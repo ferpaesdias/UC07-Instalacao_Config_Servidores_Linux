@@ -57,6 +57,12 @@ iface enp0s9 inet static
 - **inet dhcp**: A placa WAN pede um IP emprestado a quem fornece a internet (como o modem da operadora).
 - **inet static**: Nas redes internas (LAN e DMZ), nós decidimos o IP.
 
+Reinicie o serviço `networking` para aplicar as configurações de rede:
+
+```bash
+systemctl restart networking
+```
+
 ---
 
 ## 3. Habilitar o Roteamento (IP Forwarding)
@@ -90,6 +96,8 @@ apt update
 apt install nftables -y
 systemctl enable nftables
 ```
+
+### Configuração
 
 Apague todo o conteúdo existente no arquivo `/etc/nftables.conf` e cole o seguinte:
 
@@ -202,17 +210,17 @@ table ip nat {
 - **DMZ -> LAN**: Bloqueado (Implicitamente pelo policy drop). Isso isola a rede da empresa caso um dos servidores da rede DMZ seja hackeado.
 - **NAT Masquerade**: O firewall "mascara" os IPs internos, coloca o dele na saída, e quando a resposta da internet volta, ele entrega ao computador certo.
 
-**Aplicar as regras**:
+### Testar e aplicar as regras
 
 ```bash
-systemctl restart nftables
+nft -f /etc/nftables.conf
 ```
 
 ---
 
 ## 5. Configuração de Nome e Hosts
 
-Altere o *v* do servidor
+Altere o *Hostname* do servidor
 
 ```bash
 hostnamectl set-hostname firewall
