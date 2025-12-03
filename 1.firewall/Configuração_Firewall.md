@@ -1,6 +1,6 @@
 # Configuração do Servidor: Firewall e Gateway
 
-Esta documentação detalha o processo de configuração do servidor Firewall utilizando Debian 13. 
+Esta documentação detalha o processo de configuração do servidor Firewall utilizando Debian 13.
 
 Este servidor atua como roteador entre a Internet, a rede interna (LAN) e a zona desmilitarizada (DMZ), utilizando Nftables para filtrar pacotes e realizar NAT (Network Address Translation).
 
@@ -24,11 +24,7 @@ Este servidor atua como roteador entre a Internet, a rede interna (LAN) e a zona
 
 Primeiro, vamos definir os endereços IP das placas de rede. O Firewall precisa de IPs fixos nas redes internas para que os outros computadores o encontrem como "Gateway".
 
-<br/>
-
-**Arquivo**: `/etc/network/interfaces`
-
-Edite este arquivo com o conteúdo abaixo:
+Edite o arquivo `/etc/network/interfaces` com o conteúdo abaixo:
 
 ```bash
 # Esta linha habilita a interface de loopback (local)
@@ -55,13 +51,17 @@ iface enp0s9 inet static
     netmask 255.255.255.0
 ```
 
-<br/>
-
 🧠 Entendendo a configuração:
 
 - **auto enp0sX**: Diz ao Linux para ligar essa placa de rede assim que o computador iniciar.
 - **inet dhcp**: A placa WAN pede um IP emprestado a quem fornece a internet (como o modem da operadora).
-- **inet static**: Nas redes internas (LAN e DMZ), nós decidimos o IP. 
+- **inet static**: Nas redes internas (LAN e DMZ), nós decidimos o IP.
+
+Reinicie o serviço `networking` para aplicar as configurações de rede:
+
+```bash
+systemctl restart networking
+```
 
 ---
 
@@ -69,15 +69,11 @@ iface enp0s9 inet static
 
 Por padrão, o Linux bloqueia a passagem de dados de uma placa de rede para outra por segurança. Como este servidor é um Roteador, precisamos liberar esse tráfego.
 
-**Arquivo**: `/etc/sysctl.d/99-custom-forwarding.conf`
-
-Edite o arquivo com o conteúdo abaixo:
+Edite o arquivo `/etc/sysctl.d/99-custom-forwarding.conf` com o conteúdo abaixo:
 
 ```bash
 net.ipv4.ip_forward=1
-``` 
-
-<br/>
+```
 
 **Aplicar a mudança**:
 
@@ -85,26 +81,25 @@ Execute o comando abaixo para ativar a configuração sem precisar reiniciar:
 
 ```bash
 sysctl --system
-``` 
+```
+
 ---
 
 ## 4. Configuração do Firewall (Nftables)
 
 O Nftables vai controlar quem pode falar com quem e permitir que os computadores internos naveguem na internet (usando NAT/Masquerade).
 
-**Instalação**
+### Instalação
 
 ```bash
 apt update
 apt install nftables -y
 systemctl enable nftables
-``` 
+```
 
-<br/>
+### Configuração
 
-**Arquivo**: `/etc/nftables.conf`
-
-Apague todo o conteúdo existente e cole o seguinte:
+Apague todo o conteúdo existente no arquivo `/etc/nftables.conf` e cole o seguinte:
 
 ```bash
 #!/usr/sbin/nft -f
@@ -112,7 +107,7 @@ Apague todo o conteúdo existente e cole o seguinte:
 # Apaga completamente o conjunto de regras anteriores
 flush ruleset
 
-# --- Variaveis --- #
+# --- Variáveis --- #
 # Altere os valores conforme sua infraestrutura
 define WAN_IF = "enp0s3"
 define DMZ_IF = "enp0s8"
@@ -124,7 +119,7 @@ define LAN_NET = 192.168.100.0/24
 table inet filter {
 
   # --- CHAIN INPUT --- #
-  # Pacotes destinados ao proprio Firewall
+  # Pacotes destinados ao próprio Firewall
   chain input {
     type filter hook input priority 0;
     policy drop;
@@ -132,10 +127,10 @@ table inet filter {
     # Aceitar loopback
     iifname "lo" accept
 
-    # Aceitar as conexoes ja pre estabelecidas ou relacionadas
+    # Aceitar as conexões ja pre estabelecidas ou relacionadas
     ct state {established, related} accept
 
-    # Descarta pacotes invalidos
+    # Descarta pacotes inválidos
     ct state invalid drop
 
     # Permitir ICMP da LAN  para o Firewall
@@ -160,10 +155,10 @@ table inet filter {
     type filter hook forward priority 0;
     policy drop;
 
-    # Permite o trafego de conexoes ja estabelecidas
+    # Permite o trafego de conexões ja estabelecidas
     ct state {established, related} accept
 
-    # Descarta pacotes invalidos
+    # Descarta pacotes inválidos
     ct state invalid drop
 
     # Permite que a rede LAN acesse a rede WAN
@@ -202,9 +197,7 @@ table ip nat {
     oifname $WAN_IF masquerade
   }
 }
-``` 
-
-<br/>
+```
 
 🧠 Entendendo as regras:
 
@@ -217,69 +210,60 @@ table ip nat {
 - **DMZ -> LAN**: Bloqueado (Implicitamente pelo policy drop). Isso isola a rede da empresa caso um dos servidores da rede DMZ seja hackeado.
 - **NAT Masquerade**: O firewall "mascara" os IPs internos, coloca o dele na saída, e quando a resposta da internet volta, ele entrega ao computador certo.
 
-<br/>
-
-**Aplicar as regras**:
+### Testar e aplicar as regras
 
 ```bash
-systemctl restart nftables
-``` 
+nft -f /etc/nftables.conf
+```
+
 ---
 
 ## 5. Configuração de Nome e Hosts
 
-Para facilitar a identificação.
+Altere o *Hostname* do servidor
 
 ```bash
 hostnamectl set-hostname firewall
-``` 
-
-<br/>
+```
 
 Edite o arquivo `/etc/hosts/` e o deixe igual o conteúdo abaixo:
 
 ```bash
 127.0.0.1       localhost
 127.0.1.1       firewall.empresatech.example  firewall
-``` 
+```
+
 ---
 
 ## 6. Validação e Testes
- 
-Agora, vamos garantir que tudo funciona. Execute os comandos abaixo no terminal do Firewall.
 
-<br/>
+Agora, vamos garantir que tudo funciona. Execute os comandos abaixo no terminal do Firewall.
 
 1. Verificar endereços IP:
 
-```bash
-ip -brief addr
-``` 
+   ```bash
+   ip -brief addr
+   ```
 
-<br/>
+   Resultado esperado:
 
-Resultado esperado:
-
-```bash
-lo               UNKNOWN        127.0.0.1/8 ::1/128 
-enp0s3           UP             192.168.3.44/24 fe80::7d16:45ba:d71f:3c0f/64 
-enp0s8           UP             172.20.0.1/24 fe80::a00:27ff:fee5:dfb8/64 
-enp0s9           UP             192.168.100.1/24 fe80::a00:27ff:fe28:c085/64 
-```
-
-<br/>
+   ```bash
+   lo               UNKNOWN        127.0.0.1/8 ::1/128 
+   enp0s3           UP             192.168.3.44/24 fe80::7d16:45ba:d71f:3c0f/64 
+   enp0s8           UP             172.20.0.1/24 fe80::a00:27ff:fee5:dfb8/64 
+   enp0s9           UP             192.168.100.1/24 fe80::a00:27ff:fe28:c085/64 
+   ```
 
 2. Verificar se tem Internet:
 
-```bash
-ping -c 4 google.com
-``` 
-
-<br/>
+   ```bash
+   ping -c 4 google.com
+   ```
 
 3. Verificar se as regras do firewall foram carregadas:
 
-```bash
-nft list ruleset
-``` 
+   ```bash
+   nft list ruleset
+   ```
+
 ---
