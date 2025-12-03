@@ -71,7 +71,7 @@ Desative o serviço do Bind9:
 
 ```bash
 systemctl stop bind9
-systemctl disable bind9
+systemctl disable named
 systemctl mask bind9
 ```
 
