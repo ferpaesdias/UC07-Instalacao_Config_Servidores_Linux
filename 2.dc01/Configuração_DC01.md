@@ -130,7 +130,7 @@ options {
         8.8.4.4;
     };
 
-    dnssec-validation auto;
+    dnssec-validation no;
 
     # Permitir consultas apenas da nossa rede interna e local
     allow-query { 
