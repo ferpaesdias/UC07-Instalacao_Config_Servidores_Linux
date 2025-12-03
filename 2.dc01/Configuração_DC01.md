@@ -162,6 +162,13 @@ Substitua o conteúdo do arquivo `/etc/bind/named.conf.local` por:
 include "/var/lib/samba/bind-dns/named.conf";
 ```
 
+Criar a Zona Reversa
+
+```bash
+samba-tool dns zonecreate dc01 100.168.192.in-addr.arpa -U administrator
+```
+> Será solicitada a senha de administrator do domínio.
+
 ---
 
 ## 6. Inicialização dos Serviços
