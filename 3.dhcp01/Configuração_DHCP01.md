@@ -35,6 +35,15 @@ iface enp0s3 inet static
     dns-search empresatech.example
 ```
 
+Também edite o arquivo `/etc/resolv.conf` para configurar o DNS:
+
+```bash
+nameserver  192.168.100.200
+search      empresatech.example
+```
+
+> Durante a instalação, usamos um DNS externo (Google) para baixar pacotes.
+
 Reinicie a rede para aplicar:
 
 ```bash
