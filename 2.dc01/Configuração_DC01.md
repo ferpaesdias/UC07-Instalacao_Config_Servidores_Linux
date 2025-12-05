@@ -32,12 +32,15 @@ iface enp0s3 inet static
     address 192.168.100.200
     netmask 255.255.255.0
     gateway 192.168.100.1
-    
-    # Durante a instalação, usamos um DNS externo (Google) para baixar pacotes.
-    # Após configurar o Samba, mudaremos para 127.0.0.1
-    dns-nameservers 8.8.8.8
-    dns-search empresatech.example
 ```
+
+Também edite o arquivo `/etc/resolv.conf` para configurar o DNS:
+
+```bash
+nameserver 8.8.8.8
+```
+
+> Durante a instalação, usamos um DNS externo (Google) para baixar pacotes.
 
 Reinicie a rede para aplicar:
 
@@ -77,7 +80,14 @@ apt install samba smbclient krb5-config krb5-user winbind bind9 bind9-utils pyth
 - **Servidores Kerberos para seu realm**: `dc01.empresatech.example`
 - **Servidor administrativo para seu realm Kerberos**: `dc01.empresatech.example`
 
-Acesse o arquivo `/etc/network/interfaces` e altere a linha `dns-nameservers 8.8.8.8` para `dns-nameservers 127.0.0.1`.
+### Reconfigurar o DNS
+
+Acesse o arquivo `/etc/resolv.conf` e configure como está abaixo:
+
+```bash
+nameserver  127.0.0.1
+search      empresatech.example
+```
 
 Reinicie o serviço de rede para aplicar a configuração:
 
@@ -97,7 +107,15 @@ Agora vamos transformar este servidor comum em um Controlador de Domínio.
    mv /etc/samba/smb.conf /etc/samba/smb.conf.orig
    ```
 
-2. **Provisionar o Domínio**: Execute o comando abaixo. Ele cria a base de dados de usuários e configura o DNS automaticamente.
+2. Parar serviços legados
+
+   ```bash
+   systemctl stop smbd nmbd winbind
+   systemctl disable smbd nmbd winbind
+   systemctl mask smbd nmbd winbind
+   ```
+
+3. **Provisionar o Domínio**: Execute o comando abaixo. Ele cria a base de dados de usuários e configura o DNS automaticamente.
 Definiremos a senha de `administrator` como `SenhaForte123!` para fins educativos.
 
    ```bash
@@ -162,13 +180,6 @@ Substitua o conteúdo do arquivo `/etc/bind/named.conf.local` por:
 include "/var/lib/samba/bind-dns/named.conf";
 ```
 
-Criar a Zona Reversa
-
-```bash
-samba-tool dns zonecreate dc01 100.168.192.in-addr.arpa -U administrator
-```
-> Será solicitada a senha de administrator do domínio.
-
 ---
 
 ## 6. Inicialização dos Serviços
@@ -180,15 +191,18 @@ O serviço do Samba para AD é o `samba-ad-dc`. Os serviços `smbd`, `nmbd` e `w
 systemctl restart bind9
 systemctl enable named
 
-# Parar serviços legados
-systemctl stop smbd nmbd winbind
-systemctl disable smbd nmbd winbind
-
 # Ativar o Samba AD DC
-systemctl unmask samba-ad-dc
+systemctl restart samba-ad-dc
 systemctl enable samba-ad-dc
-systemctl start samba-ad-dc
 ```
+
+Criar a Zona Reversa
+
+```bash
+samba-tool dns zonecreate dc01 100.168.192.in-addr.arpa -U administrator
+```
+
+> Será solicitada a senha de administrator do domínio.
 
 ---
 
