@@ -1,0 +1,300 @@
+# Controlador de Domínio Primário (DC01)
+
+Este guia cobre a instalação e configuração do **Samba 4** atuando como um Controlador de Domínio Active Directory (AD DC).
+
+**Objetivo:** Centralizar a autenticação de usuários, fornecer resolução de nomes (DNS) e garantir a sincronização de horário (NTP) para toda a rede.
+
+**Informações do Servidor:**
+
+* **Hostname:** `dc01`
+* **IP:** `192.168.100.200`
+* **Domínio:** `empresatech.example`
+* **Reino (Realm):** `EMPRESATECH.EXAMPLE`
+* **Senha de Admin:** `SenhaForte123!` (Didática)
+
+---
+
+## 🛑 Pré-requisitos de Rede
+
+O Controlador de Domínio é o servidor mais importante da rede. Ele precisa de um IP fixo e um nome definido.
+
+1. **Definir o Hostname:**
+
+    ```bash
+    hostnamectl set-hostname dc01
+    ```
+<br/>
+
+2. **Configurar IP Estático:**
+
+    Edite o arquivo `/etc/network/interfaces`:
+
+    ```bash
+    vim /etc/network/interfaces
+    ```
+    <br/>
+
+    O arquivo deve conter a configuração da interface LAN (ajuste o nome `enp0s3` conforme seu comando `ip link`):
+
+    ```conf
+    auto lo
+    iface lo inet loopback
+
+    allow-hotplug enp0s3
+    iface enp0s3 inet static
+        address 192.168.100.200/24
+        gateway 192.168.100.1
+    ```
+
+    *Salve e saia.*
+
+<br/>
+
+3. **Configurar DNS Temporário (Para Instalação):**
+
+    Para baixar os pacotes, precisamos de internet. Edite o `/etc/resolv.conf`:
+
+    ```bash
+    vim /etc/resolv.conf
+    ```
+
+    <br/>
+
+    Adicione um DNS público temporariamente:
+
+    ```conf
+    nameserver 8.8.8.8
+    ```
+    <br/>
+
+4. **Aplicar Rede e Atualizar Hosts:**
+
+    ```bash
+    systemctl restart networking
+    ```
+    <br/>
+
+    Edite o `/etc/hosts` para associar o nome ao IP:
+
+    ```conf
+    127.0.0.1       localhost
+    192.168.100.200 dc01.empresatech.example dc01
+    ```
+    <br/>
+
+    Apague tudo e adicione o conteúdo abaixo:  
+      
+    ```bash
+    vim /etc/hosts
+    ```
+    <br/>
+
+---
+
+## 🕰️ Passo 1: Sincronização de Tempo (Chrony)
+
+O protocolo de segurança do Windows (Kerberos) falha se houver uma diferença de horário maior que 5 minutos entre o servidor e os clientes. O DC será a fonte de hora oficial da rede.
+
+1.  Instale o Chrony:
+   
+    ```bash
+    apt update
+    apt install chrony -y
+    ```
+    <br/>
+
+2.  Configure para permitir que a rede LAN consulte a hora aqui. Edite `/etc/chrony/chrony.conf`:
+    ```bash
+    vim /etc/chrony/chrony.conf
+    ```
+    <br/>
+    
+    Adicione a linha de permissão no final do arquivo:
+    ```conf
+    # Permitir acesso NTP à rede local
+    allow 192.168.100.0/24
+    ```
+    <br/>
+
+3.  Habilite e reinicie o serviço:
+    ```bash
+    systemctl enable chrony
+    systemctl restart chrony
+    ```
+
+---
+
+## 📦 Passo 2: Instalação do Samba AD DC
+
+Vamos instalar os pacotes necessários para o Samba funcionar como um substituto do Windows Server.
+
+```bash
+apt install samba smbclient krb5-config winbind libpam-winbind libnss-winbind -y
+```
+Durante a instalação pode ser solicitados alguns dados, responda conforme está abaixo:
+
+- **Realm Kerberos versão 5 padrão**: `EMPRESATECH.EXAMPLE`
+- **Servidores Kerberos para seu realm**: `dc01.empresatech.example`
+- **Servidor administrativo para seu realm Kerberos**: `dc01.empresatech.example`
+
+---
+
+## ⚙️ Passo 3: Provisionamento do Domínio
+
+Agora vamos configurar o "cérebro" da rede.
+
+1. **Limpar configurações padrão**: O serviço padrão do Samba para arquivos (smbd) conflita com o serviço de Domínio (samba-ad-dc). Vamos desativar os antigos e limpar a configuração.
+
+    ```bash
+    systemctl stop smbd nmbd winbind
+    systemctl disable smbd nmbd winbind
+    systemctl unmask samba-ad-dc
+    mv /etc/samba/smb.conf /etc/samba/smb.conf.backup
+    ```
+
+<br/>
+
+2. **Criar o Domínio**: Execute o comando interativo para criar a estrutura do AD:
+
+    ```bash
+    samba-tool domain provision \
+      --use-rfc2307 \
+      --realm=EMPRESATECH.EXAMPLE \
+      --domain=EMPRESATECH \
+      --server-role=dc \
+      --dns-backend=SAMBA_INTERNAL \
+      --adminpass='SenhaForte123!'
+    ```
+
+<br/>
+
+3. **Configurar Autenticação Local (Kerberos)**: Substitua o arquivo de configuração do sistema pelo gerado pelo Samba:
+
+    ```bash
+    mv /etc/krb5.conf /etc/krb5.conf.orig
+    cp /var/lib/samba/private/krb5.conf /etc/krb5.conf
+    ```
+
+---
+
+## 🔄 Passo 4: Configuração Final de DNS e Serviço
+
+Agora que o domínio existe, o servidor deve consultar a si mesmo (localhost) para resolver nomes da rede interna, não mais o Google.
+
+1. Ajuste Definitivo do `/etc/resolv.conf`:
+
+    ```bash
+    vim /etc/resolv.conf
+    ```
+
+    <br/>
+
+    Altere o conteúdo para:
+
+    ```bash
+    search empresatech.example
+    nameserver 127.0.0.1
+    ```
+    
+    <br/>
+
+    **Explicação**:
+
+    `search`: Permite usar nomes curtos (ex: pingar `pc01` em vez de `pc01.empresatech.example`).
+    `nameserver 127.0.0.1`: Diz ao Linux para perguntar ao Samba local sobre endereços IP.
+
+<br/>
+
+2. Iniciar o Domínio:
+
+    ```bash
+    systemctl enable samba-ad-dc
+    systemctl start samba-ad-dc
+    ```
+
+---
+
+## ✅ Passo 5: Testes de Validação
+
+Verifique se o domínio está saudável antes de prosseguir.
+
+<br/>
+
+1. **Validar DNS (SRV Records)**: Verifica se os serviços LDAP estão registrados no DNS.
+   
+    ```bash
+    host -t SRV _ldap._tcp.empresatech.example
+    ```
+   >Saída esperada: `_ldap._tcp.empresatech.example has SRV record 0 100 389 dc01.empresatech.example.`
+
+    <br/>
+
+2. Testar Login de Administrador:
+
+    ```bash
+    smbclient -L localhost -U Administrator
+    ```
+   >Digite a senha `SenhaForte123!` quando solicitado.
+
+---
+
+## ✅ Passo 6: Criação da Estrutura da Empresa
+
+Vamos criar os grupos e usuários conforme o organograma da **EmpresaTech**.
+
+<br/>
+
+1. Criar Grupos
+    
+    ```bash
+    samba-tool group add grp_financeiro
+    samba-tool group add grp_rh
+    samba-tool group add grp_ti
+    ```
+
+    <br/>
+
+2. Criar Usuários em Massa
+
+
+    <br/>
+
+    Financeiro
+    ```bash
+    samba-tool user create ana.souza Mudar123! --surname="Souza" --given-name="Ana"
+    samba-tool user create bruno.alves Mudar123! --surname="Alves" --given-name="Bruno"
+    samba-tool user create carla.dias Mudar123! --surname="Dias" --given-name="Carla"
+    ```
+
+    <br/>
+
+    Recursos Humanos
+    ```bash
+    samba-tool user create daniel.rocha Mudar123! --surname="Rocha" --given-name="Daniel"
+    samba-tool user create elisa.martins Mudar123! --surname="Martins" --given-name="Elisa"
+    samba-tool user create fabio.costa Mudar123! --surname="Costa" --given-name="Fabio"
+    ```
+
+    <br/>
+
+    Tecnologia (TI)
+    ```bash
+    samba-tool user create gabriel.lima Mudar123! --surname="Lima" --given-name="Gabriel"
+    samba-tool user create helena.silva Mudar123! --surname="Silva" --given-name="Helena"
+    samba-tool user create igor.santos Mudar123! --surname="Santos" --given-name="Igor"
+    samba-tool user create julia.pereira Mudar123! --surname="Pereira" --given-name="Julia"
+    ```
+
+    <br/>
+
+3. Adicionar Membros aos Grupos
+
+    <br/>
+
+    ```bash
+    samba-tool group addmembers grp_financeiro ana.souza,bruno.alves,carla.dias
+    samba-tool group addmembers grp_rh daniel.rocha,elisa.martins,fabio.costa
+    samba-tool group addmembers grp_ti gabriel.lima,helena.silva,igor.santos,julia.pereira
+    ```
+
+---
