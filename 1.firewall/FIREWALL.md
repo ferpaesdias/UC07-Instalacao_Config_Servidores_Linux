@@ -1,222 +1,74 @@
-# FIREWALL – Servidor de Borda (NAT + Filtro de Pacotes)
+# 01 - Configuração do Gateway e Firewall (GW-FIREWALL)
 
-## 1. Visão Geral
+Bem-vindo ao primeiro passo prático! Neste guia, vamos transformar uma instalação padrão do Debian 13 em um roteador e firewall corporativo robusto.
 
-Este servidor funciona como **gateway** entre:
-
-- **Internet (WAN)** – recebe IP via DHCP  
-- **DMZ (172.20.0.0/24)** – onde ficam os servidores WEB01 e SYS01  
-- **LAN (192.168.100.0/24)** – rede interna da empresa  
-
-<br/>
-
-Funções principais:
-
-- Fazer **NAT (masquerade)** para que a LAN e a DMZ acessem a Internet.
-- Controlar o tráfego entre **LAN ↔ DMZ** e **LAN/DMZ ↔ Internet** usando **nftables**.
-- Ser o **gateway padrão** para as redes LAN e DMZ.
-
-<br/>
-
-Interfaces sugeridas:
-
-- enp0s3 → WAN  
-- enp0s8 → DMZ  
-- enp0s9 → LAN  
+**Objetivo:** Configurar as interfaces de rede para segmentar o tráfego e aplicar regras de firewall (Nftables) que protejam a nossa rede interna (LAN) e a zona desmilitarizada (DMZ).
 
 ---
 
-## 2. Pré-requisitos
+## 🏗️ Preparação da Máquina Virtual (VirtualBox)
 
-- Debian 13 “Trixie”
-- 3 interfaces configuradas no VirtualBox
-- Acesso root/sudo
+Antes de ligar a máquina, precisamos garantir que o hardware virtual tenha as "placas de rede" corretas para conectar os cabos virtuais.
 
----
+1. Selecione a VM **GW-FIREWALL** e vá em **Configurações > Rede**.
+2. Configure os 3 adaptadores:
+    * **Adaptador 1:** Conectado a: `NAT` (Simula a conexão WAN/Internet).
+    * **Adaptador 2:** Conectado a: `Rede Interna`. Nome: `intnet_dmz` (Será a nossa DMZ).
+    * **Adaptador 3:** Conectado a: `Rede Interna`. Nome: `intnet_lan` (Será a nossa LAN Corporativa).
 
-## 3. Configuração de Rede
-
-### 3.1 Arquivo `/etc/network/interfaces`
-
-```ini
-auto lo
-iface lo inet loopback
-
-auto enp0s3
-iface enp0s3 inet dhcp
-
-auto enp0s8
-iface enp0s8 inet static
-    address 172.20.0.1
-    netmask 255.255.255.0
-
-auto enp0s9
-iface enp0s9 inet static
-    address 192.168.100.1
-    netmask 255.255.255.0
-```
-
-<br/>
-
-Aplicar:
-
-```
-sudo systemctl restart networking
-```
+> **Por que isso é importante?** Fisicamente, isso seria equivalente a instalar 3 placas de rede no servidor e conectar cabos de cores diferentes em switches separados. O VirtualBox simula isso via software.
 
 ---
 
-## 4. Habilitar Roteamento
+## Passo 1: Configuração das Interfaces de Rede
 
-```conf
-# /etc/sysctl.d/99-sysctl.conf
-net.ipv4.ip_forward = 1
-```
+O Linux precisa saber qual IP usar em cada placa de rede. Vamos editar o arquivo de configuração de interfaces.
 
-<br/>
+1. Abra o terminal e logue como `root` (ou use `sudo -i`).
+2. Edite o arquivo de interfaces:
 
-Aplicar:
+   ```bash
+   vim /etc/network/interfaces
+   ```
 
-```
-sudo sysctl --system
-```
+   ```bash
+   # Interface de Loopback (Interna do sistema)
+   auto lo
+   iface lo inet loopback
 
----
+   # 1. Interface WAN (Internet - Adaptador 1)
+   # Recebe IP automático do VirtualBox/Provedor
+   allow-hotplug enp0s3
+   iface enp0s3 inet dhcp
 
-## 5. Instalação do nftables
+   # 2. Interface DMZ (Servidores Públicos - Adaptador 2)
+   # IP Estático para ser o Gateway da DMZ
+   allow-hotplug enp0s8
+   iface enp0s8 inet static
+      address 172.20.0.1/24
 
-```
-sudo apt update
-sudo apt install -y nftables
-sudo systemctl enable --now nftables
-```
+   # 3. Interface LAN (Rede Corporativa - Adaptador 3)
+   # IP Estático para ser o Gateway da LAN
+   allow-hotplug enp0s9
+   iface enp0s9 inet static
+      address 192.168.100.1/24
+   ```
 
----
+   >**Nota**: Os nomes das interfaces (`enp0s3`, `enp0s8`, `enp0s9`) podem variar dependendo do hardware. Use o comando `ip link` antes para conferir os nomes. Se forem diferentes, ajuste no arquivo acima.
 
-## 6. Configuração `/etc/nftables.conf`
+3. Reinicie o serviço de rede para aplicar:
 
-```nft
-#!/usr/sbin/nft -f
+   ```bash
+   systemctl restart networking
+   ```
 
-# Apaga completamente o conjunto de regras anteriores
-flush ruleset
+4. Verifique se os IPs estão corretos:
 
-# --- Variaveis --- #
-# Altere os valores conforme sua infraestrutura
-define WAN_IF = "enp0s3"
-define DMZ_IF = "enp0s8"
-define LAN_IF = "enp0s9"
-define DMZ_NET = 172.20.0.0/24
-define LAN_NET = 192.168.100.0/24
+   ```bash
+   ip addr
+   ```
 
-# Tabela INET FILTER
-table inet filter {
-
-  # --- CHAIN INPUT --- #
-  # Pacotes destinados ao proprio Firewall
-  chain input {
-    type filter hook input priority 0;
-    policy drop;
-   
-    # Aceitar loopback
-    iifname "lo" accept
-
-    # Aceitar as conexoes ja pre estabelecidas ou relacionadas
-    ct state {established, related} accept
-
-    # Descarta pacotes invalidos
-    ct state invalid drop
-
-    # Permitir ICMP da LAN  para o Firewall
-    iifname $LAN_IF icmp type echo-request accept
-
-    # Permitir ICMP da DMZ para o Firewall
-    iifname $DMZ_IF icmp type echo-request accept
-
-    # Permitir que o DHCP Client funciona na interface WAN
-    iifname $WAN_IF udp dport 68 accept
-
-    # Permitir acesso SSH ao Firewall apenas pela rede LAN 
-    iifname $LAN_IF tcp dport 22 accept
-
-    # Log de pacotes bloqueados
-    log prefix "FIREWALL INPUT DROP: " flags all
-  }
-
-  # --- CHAIN FORWARD --- #
-  # Pacotes que passam pelo Firewall
-  chain forward {
-    type filter hook forward priority 0;
-    policy drop;
-
-    # Permite o trafego de conexoes ja estabelecidas
-    ct state {established, related} accept
-
-    # Descarta pacotes invalidos
-    ct state invalid drop
-
-    # Permite que a rede LAN acesse a rede WAN
-    iifname $LAN_IF oifname $WAN_IF accept
- 
-    # Permite que a rede LAN acesse a rede DMZ
-    iifname $LAN_IF oifname $DMZ_IF accept
- 
-    # Permite que a rede DMZ acesse a rede WAN
-    iifname $DMZ_IF oifname $WAN_IF accept
-
-    # Log de pacotes bloqueados
-    log prefix "FIREWALL FORWARD DROP: " flags all
-  }
-
-# --- CHAIN OUTPUT --- #
-  # Pacotes originados pelo Firewall
-  chain output {
-    type filter hook output priority 0;
-    policy accept;
-  }
-}
-
-# TABELA IP NAT
-table ip nat {
-  
-  # --- CHAIN PREROUTING (DNAT)
-  # Aplica regras a pacotes assim que eles chegam, antes do roteamento
-  chain prerouting {
-    type nat hook prerouting priority -100; 
-  }   
-
-  # --- CHAIN POSTROUTING (MASQUERADE) --- #
-  chain postrouting {
-    type nat hook postrouting priority 100;
-    oifname $WAN_IF masquerade
-  }
-}
-```
-
-<br/>
-
-Aplicar:
-
-```
-sudo nft -f /etc/nftables.conf
-sudo nft list ruleset
-```
+   >Você deve ver 3 IPs diferentes agora.
 
 ---
 
-## 7. Testes
-
-### Firewall:
-```
-ping -c 4 8.8.8.8
-ping -c 4 google.com
-```
-
-<br/>
-
----
-
-## 8. Notas
-
-- Ajuste o nome das interfaces com `ip a`
-- Para limpar regras: `sudo nft flush ruleset`
