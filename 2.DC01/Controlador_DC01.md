@@ -74,18 +74,17 @@ O Controlador de Domínio é o servidor mais importante da rede. Ele precisa de 
     ```
     <br/>
 
-    Edite o `/etc/hosts` para associar o nome ao IP:
-
-    ```conf
-    127.0.0.1       localhost
-    192.168.100.200 dc01.empresatech.example dc01
-    ```
-    <br/>
-
-    Apague tudo e adicione o conteúdo abaixo:  
+    Edite o `/etc/hosts` para associar o nome ao IP. 
       
     ```bash
     vim /etc/hosts
+    ```
+    <br/>
+    
+    Apague tudo e adicione o conteúdo abaixo:  
+    ```conf
+    127.0.0.1       localhost
+    192.168.100.200 dc01.empresatech.example dc01
     ```
     <br/>
 
