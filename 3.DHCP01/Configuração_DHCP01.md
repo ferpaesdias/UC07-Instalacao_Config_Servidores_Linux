@@ -199,7 +199,7 @@ O JSON não perdoa erros de digitação. Vamos verificar se o arquivo está vál
     <br/>
     
 2. Verificar status:
-      
+
     ```bash
     systemctl status kea-dhcp4-server
     ```
@@ -207,5 +207,11 @@ O JSON não perdoa erros de digitação. Vamos verificar se o arquivo está vál
     
     <br/>
 
+3. No servidor DHCP01 você pode ver os logs em tempo real para ver o cliente pedindo IP:
+
+
+    ```bash
+    journalctl -u kea-dhcp4-server -f
+    ```
 ---
 
