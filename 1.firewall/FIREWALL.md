@@ -212,11 +212,10 @@ Vamos criar regras que:
    }
    ```
 
-3. Aplicar e listar a configuração do Nftables:
+3. Aplicar a configuração do Nftables:
 
    ```bash
    sudo nft -f /etc/nftables.conf
-   sudo nft list ruleset
    ```
 
 4. Habilitar o serviço do Nftables:
@@ -225,16 +224,48 @@ Vamos criar regras que:
    systemctl enable nftables.service
    ```
 
+### 🔍 Entenda
+
+**`masquerade` (Mascaramento)**
+
+Imagine que o servidor da LAN (192.168.100.200) quer acessar o Google. O Google não sabe onde fica o IP 192.168.x.x (é um IP privado). O Masquerade faz o Firewall trocar o IP de origem do pacote pelo seu próprio IP de WAN (público) antes de enviar para a internet. Quando o Google responde, o Firewall lembra quem pediu e devolve o pacote para a LAN.
+
+**Política `drop` vs `accept`**
+
+Note que definimos `policy drop` no início das chains `input` e forward . Isso significa: *"Tudo o que não for explicitamente permitido, é proibido"*. É o princípio de segurança mais seguro.
+
+**Por que bloquear DMZ -> LAN?**
+
+Se um hacker invadir o Servidor Web na DMZ, ele tentará acessar o servidor de arquivos na LAN para roubar dados. Nossa regra de firewall impede que qualquer conexão comece na DMZ e vá para a LAN, isolando o ataque.
+
 ---
 
-## Testes
+## ✅ Testes de Verificação
 
-Verifique se tem internet
+Execute estes comandos no **FIREWALL** para garantir que tudo está certo:
+
+Testar Internet no próprio Firewall:
 
 ```bash
 ping -c 4 8.8.8.8
 ping -c 4 google.com
 ```
+
+Listar as regras do Nftables:
+
+```bash
+nft list ruleset
+```
+
+>Você verá as tabelas e regras que acabamos de escrever coloridas no terminal.
+
+Verificar rotas:
+
+```bash
+ip route
+```
+
+>Deve haver uma linha "default via..." apontando para a interface WAN.
 
 ---
 
@@ -242,5 +273,6 @@ ping -c 4 google.com
 
 Verifique o nome das interfaces com o comando `ip a`.
 Para limpar regras do Nftables: `nft flush ruleset`.
+
 
 ---
