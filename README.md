@@ -1,53 +1,73 @@
-# Infraestrutura de Servidores Linux – Projeto Educacional
+# 🏢 Laboratório de Infraestrutura Corporativa com Debian 13
 
-Este repositório faz parte de um projeto educacional desenvolvido para alunos iniciantes na área de Redes de Computadores e Administração de Sistemas Linux.  
-O objetivo é fornecer **documentação detalhada, passo-a-passo**, para que qualquer aluno consiga reproduzir em laboratório toda a infraestrutura de servidores apresentada nas aulas.
+Bem-vindo ao guia passo a passo para a construção de uma infraestrutura de TI corporativa completa utilizando **Debian 13 "Trixie"**.
 
-A infraestrutura utiliza **Debian 13 "Trixie"**, virtualizada em **VirtualBox**, e inclui servidores essenciais como DHCP, DNS, Active Directory (Samba 4), File Server e Firewall com Nftables.  
-Os clientes da rede são máquinas Windows 10/11 e Linux com interface gráfica Gnome.
+Este projeto foi desenhado para **iniciantes**. O objetivo não é apenas digitar comandos, mas entender como os servidores conversam entre si, como proteger uma rede e como gerenciar usuários em um ambiente profissional.
 
-## Topologia da Rede
-![Topologia da Rede](diag_rede_linux.jpg)
+## 🗺️ Topologia de Rede
 
-## Objetivos do Projeto
-- Ensinar os fundamentos e a prática de administração de servidores Linux.
-- Demonstrar como construir uma infraestrutura corporativa completa em laboratório.
-- Fornecer documentação clara e acessível para iniciantes.
-- Servir como material de apoio educacional.
+O nosso laboratório simula uma empresa real com segmentação de rede para segurança.
 
-## Componentes da Infraestrutura
+![Topologia de rede](diag_rede_linux.jpg)
 
-### Firewall
-- WAN: DHCP Client  
-- DMZ: 172.20.0.1/24  
-- LAN: 192.168.100.1/24  
-- Serviço: Nftables
+| Zona | Sub-rede | Descrição |
+| :--- | :--- | :--- |
+| **WAN** | DHCP (ISP) | Conexão com a Internet (via NAT do VirtualBox) |
+| **DMZ** | `172.20.0.0/24` | Zona Desmilitarizada (Serviços acessíveis de fora) |
+| **LAN** | `192.168.100.0/24` | Rede Local (Servidores internos e Estações) |
 
-### DMZ
-- WEB01 – 172.20.0.200  
-- SYS01 – 172.20.0.201 (porta 8080)
+## 🖥️ Inventário de Servidores
 
-### LAN
-- DC01 – 192.168.100.200 (Samba4 + Bind9)  
-- DC02 – 192.168.100.201  
-- DHCP01 – 192.168.100.202 (Kea DHCP4)  
-- FS01 – 192.168.100.203 (Samba4 File Server)
+| Hostname | IP | Função | Software Principal |
+| :--- | :--- | :--- | :--- |
+| **FIREWALL** | **WAN**: DHCP Client | Gateway, Firewall, Roteamento | Nftables, Chrony |
+| | **DMZ**: 172.20.0.1 | | |
+| | **LAN**: 192.168.100.1 | |  |
+| **DC01** | 192.168.100.200 | Controlador de Domínio Primário, DNS | Samba4 AD, Bind9 (interno) |
+| **DC02** | 192.168.100.201 | Controlador de Domínio Secundário | Samba4 AD |
+| **DHCP01** | 192.168.100.202 | Servidor de DHCP | ISC Kea DHCP4 |
+| **FS01** | 192.168.100.203 | Servidor de Arquivos | Samba4 File Server |
+| **WEB01** | 172.20.0.200 | Servidor Web (Intranet/Extranet) | Nginx |
+| **SYS01** | 172.20.0.201 | Sistema Interno | App Customizada (:8080) |
 
-## Tecnologias Utilizadas
-- Debian 13  
-- Samba 4  
-- Bind9  
-- Kea DHCP  
-- Nftables  
-- Chrony  
-- Windows 10/11  
-- GNOME
+## 👥 Estrutura de Usuários e Grupos
 
-## Como Usar
-1. Acesse o diretório do servidor desejado.
-2. Siga o arquivo `.md` específico.
-3. Valide os testes propostos.
-4. Continue até montar toda a infraestrutura.
+Neste laboratório, vamos gerenciar a autenticação centralizada. Estes são os funcionários da nossa empresa fictícia:
+
+### 1. Departamento Financeiro (`grp_financeiro`)
+
+* Ana Souza (`ana.souza`)
+* Bruno Alves (`bruno.alves`)
+* Carla Dias (`carla.dias`)
+
+### 2. Recursos Humanos (`grp_rh`)
+
+* Daniel Rocha (`daniel.rocha`)
+* Elisa Martins (`elisa.martins`)
+* Fabio Costa (`fabio.costa`)
+
+### 3. Tecnologia / TI (`grp_ti`)
+
+* Gabriel Lima (`gabriel.lima`)
+* Helena Silva (`helena.silva`)
+* Igor Santos (`igor.santos`)
+* Julia Pereira (`julia.pereira`)
 
 ---
 
+## 🛠️ Pré-requisitos
+
+* Computador com suporte a virtualização (VT-x/AMD-V).
+* VirtualBox ou KVM/QEMU instalado.
+* ISO do **Debian 13 (Trixie)** Netinst.
+* Vontade de aprender!
+
+## 📚 Como usar este guia
+
+Siga os documentos na ordem numérica abaixo. Cada guia contém a explicação teórica seguida da prática.
+
+1. [Firewall.md](./1.Firewall/Firewall.md) - *Onde tudo começa.*
+2. [Controlador_DC01.md](./2.DC01/Controlador_DC01.md) - *A base da identidade.*
+3. [Servico_DHCP01.md](./3.DHCP01/Servico_DHCP01.md) - *Automação de IPs.*
+4. [Controlador_DC02.md](./2.DC01/Controlador_DC02.md) - *A base da identidade secundária.*
+5. [FS01.md](./docs/FS01.md) - *Compartilhamento seguro.*
