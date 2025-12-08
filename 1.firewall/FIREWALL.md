@@ -237,3 +237,10 @@ ping -c 4 google.com
 ```
 
 ---
+
+## Notas
+
+Verifique o nome das interfaces com o comando `ip a`.
+Para limpar regras do Nftables: `nft flush ruleset`.
+
+---
