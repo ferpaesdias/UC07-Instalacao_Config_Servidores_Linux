@@ -1,221 +1,92 @@
-# 🧩 Configuração Detalhada — Servidor DHCP01
-**Sistema:** Debian 13 (Trixie)  
-**Função:** Servidor DHCP (Kea DHCP4 Server)  
-**Endereço IP:** `192.168.100.202/24`  
-**Gateway:** `192.168.100.1`  
-**DNS:** `192.168.100.201`  
-**Domínio:** `empresatech.example`
+# 03 - Serviço de DHCP (ISC Kea)
+
+Este guia cobre a instalação e configuração do **ISC Kea DHCP Server**, o responsável por distribuir endereços IP automaticamente para todos os computadores da rede.
+
+**Objetivo:** Automatizar a configuração de rede dos clientes. Quando um PC for ligado na rede, ele deve receber:
+1.  Um IP livre (ex: `192.168.100.50`).
+2.  O endereço do Gateway (Firewall) para ter Internet.
+3.  O endereço do DNS (DC01) para encontrar o domínio.
+
+**Informações do Servidor:**
+* **Hostname:** `dhcp01`
+* **IP:** `192.168.100.202`
+* **Software:** ISC Kea DHCP4
 
 ---
 
-## 1️⃣ Instalação dos Pacotes
+## 🛑 Pré-requisitos de Rede
 
-```bash
-sudo apt update
-sudo apt install -y kea-dhcp4-server kea-admin kea-common
-```
+O Controlador de Domínio é o servidor mais importante da rede. Ele precisa de um IP fixo e um nome definido.
 
-* O pacote `kea-dhcp4-server` fornece o daemon principal do Kea para IPv4.  
-* `kea-admin` gerencia o banco de dados de leases.  
-* `kea-shell` arquivos de suporte e utilitários CLI básicos.
+1. **Definir o Hostname:**
 
----
+    ```bash
+    hostnamectl set-hostname dhcp01
+    ```
+<br/>
 
-## 2️⃣ Configuração de Rede Estática
+2. **Configurar IP Estático:**
 
-Arquivo: `/etc/network/interfaces.d/eth0`
+    Edite o arquivo `/etc/network/interfaces`:
 
-```bash
-auto eth0
-iface eth0 inet static
-    address 192.168.100.202/24
-    gateway 192.168.100.1
-    dns-nameservers 192.168.100.201
-    dns-search empresatech.example
-```
+    ```bash
+    vim /etc/network/interfaces
+    ```
+    <br/>
 
-Reinicie a interface:
-```bash
-sudo systemctl restart networking
-```
+    O arquivo deve conter a configuração da interface LAN (ajuste o nome `enp0s3` conforme seu comando `ip link`):
 
----
+    ```conf
+    auto lo
+    iface lo inet loopback
 
-## 3️⃣ Configuração do Kea DHCP4
+    allow-hotplug enp0s3
+    iface enp0s3 inet static
+        address 192.168.100.202/24
+        gateway 192.168.100.1
+    ```
 
-Crie um backup do arquivo de configuração
-
-```bash
-sudo mv /etc/kea/kea-dhcp4.conf /etc/kea/kea-dhcp4.conf.bkp
-```
+    *Salve e saia.*
 
 <br/>
 
-Crie o arquivo `/etc/kea/kea-dhcp4.conf` com o conteúdo abaixo. Altere a interface de rede de acordo com o seu ambiente:
+3. **Configurar DNS Temporário (Para Instalação):**
 
-```jsonc
-{
-"Dhcp4": {
-  // Interface o Kea deve "ouvir" pedidos DHCP
-  "interfaces-config": {
-    "interfaces": [ "enp0s3" ]
-  },
+    Para baixar os pacotes, precisamos de internet. Edite o `/etc/resolv.conf`:
 
-  // 2. Base de dados de leases (quem alugou qual IP)
-  "lease-database": {
-      "type": "memfile",
-      "lfc-interval": 3600
-  },
+    ```bash
+    vim /etc/resolv.conf
+    ```
 
-  // 3. Configuração da nossa Sub-rede LAN
-  "subnet4": [
-    {
-      // ID da subnet
-     "id": 1,
+    <br/>
 
-      // A rede que vamos servir
-      "subnet": "192.168.100.0/24",
+    Adicione um DNS público temporariamente:
 
-      // A faixa de IPs que será distribuída (ex: 50 a 150)
-      "pools": [
-        { "pool": "192.168.100.50 - 192.168.100.150" }
-      ],
+    ```conf
+    search empresatech.example
+    nameserver 192.168.100.200
+    ```
+    <br/>
 
-      // 4. Opções que serão entregues aos clientes (PC01, PC02, etc.)
-      "option-data": [
-        {
-          // Opção 3: O Gateway (Router)
-          "name": "routers",
-          "data": "192.168.100.1"
-        },
-        {
-          // Opção 6: O Servidor de DNS
-          "name": "domain-name-servers",
-          "data": "192.168.100.201"
-        },
-        {
-          // Opção 15: O nome do domínio
-          "name": "domain-search",
-          "data": "empresatech.example"
-        }
-      ]
-    }
-  ],
+4. **Aplicar Rede e Atualizar Hosts:**
 
-  // Configuração de Logging (opcional)
-  "loggers": [
-    {
-      "name": "kea-dhcp4",
-      "output_options": [
-        {
-          "output": "/var/log/kea/kea-dhcp4.log",
-          "maxsize": 1048576,
-          "maxver": 4
-        }
-      ],
+    ```bash
+    systemctl restart networking
+    ```
+    <br/>
+
+    Edite o `/etc/hosts` para associar o nome ao IP. 
       
-      "severity": "INFO",
-      "debuglevel": 0
-      }
-    ]
-  }
-}
-```
-
-<br />
-
-Verifique a sintaxe:
-```bash
-sudo kea-dhcp4 -t /etc/kea/kea-dhcp4.conf
-```
+    ```bash
+    vim /etc/hosts
+    ```
+    <br/>
+    
+    Apague tudo e adicione o conteúdo abaixo:  
+    ```conf
+    127.0.0.1       localhost
+    192.168.100.202 dhcp01.empresatech.example dhcp01
+    ```
+    <br/>
 
 ---
-
-## 4️⃣ Habilitar e Iniciar o Serviço
-
-```bash
-sudo systemctl enable kea-dhcp4-server
-sudo systemctl start kea-dhcp4-server
-sudo systemctl status kea-dhcp4-server
-```
-
-Logs:
-```bash
-sudo journalctl -u kea-dhcp4-server -f
-```
-
----
-
-## 5️⃣ Teste de Funcionamento
-
-Em um **cliente Linux ou Windows** configurado como DHCP:
-
-```bash
-ip addr show
-# ou
-ipconfig /all
-```
-
-O cliente deve receber:
-- IP entre `192.168.100.50–150`
-- Gateway: `192.168.100.1`
-- DNS: `192.168.100.201`
-- Domínio: `empresatech.example`
-
----
-
-## 6️⃣ (Opcional) Reserva de IPs
-
-```jsonc
-"reservations": [
-  {
-    "hw-address": "00:11:22:33:44:55",
-    "ip-address": "192.168.100.60",
-    "hostname": "cliente01"
-  }
-]
-```
-
----
-
-## 7️⃣ Verificação dos Leases
-
-```bash
-sudo cat /var/lib/kea/kea-leases4.csv
-```
-
----
-
-## 8️⃣ Integração com o DC01 (DNS)
-
-O Kea apontará para o **DC01 (192.168.100.201)** como servidor DNS.  
-Se desejar integração dinâmica de DNS (DDNS), será necessário configurar o Kea Control Agent e o Bind9 (no DC01) com TSIG — configuração opcional para o ambiente atual.
-
----
-
-## 9️⃣ Backup e Restauração
-
-Backup:
-```bash
-sudo cp /etc/kea/kea-dhcp4.conf /root/backup/
-sudo cp /var/lib/kea/kea-leases4.csv /root/backup/
-```
-
-Restauração:
-```bash
-sudo cp /root/backup/kea-dhcp4.conf /etc/kea/
-sudo cp /root/backup/kea-leases4.csv /var/lib/kea/
-sudo systemctl restart kea-dhcp4-server
-```
-
----
-
-## 10️⃣ Troubleshooting
-
-| Comando | Função |
-|----------|--------|
-| `sudo kea-dhcp4 -t /etc/kea/kea-dhcp4.conf` | Testa o arquivo de configuração |
-| `sudo journalctl -u kea-dhcp4-server` | Visualiza logs |
-| `sudo systemctl restart kea-dhcp4-server` | Reinicia o serviço |
-| `sudo ss -ulpn | grep 67` | Verifica se o Kea está escutando na porta UDP 67 |
-| `sudo tail -f /var/log/kea-dhcp4.log` | Acompanha o log em tempo real |
