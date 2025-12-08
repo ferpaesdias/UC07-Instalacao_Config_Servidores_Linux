@@ -1,4 +1,4 @@
-# 01 - Configuração do Gateway e Firewall (GW-FIREWALL)
+# Configuração do Gateway e Firewall (FIREWALL)
 
 Bem-vindo ao primeiro passo prático! Neste guia, vamos transformar uma instalação padrão do Debian 13 em um roteador e firewall corporativo robusto.
 
