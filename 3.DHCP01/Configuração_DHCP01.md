@@ -144,7 +144,7 @@ O arquivo de configuração padrão do Kea é muito extenso e cheio de exemplos.
         {
             "id": 1,
             "subnet": "192.168.100.0/24",
-            "pools": [ { "pool": "192.168.100.100 - 192.168.100.199" } ],
+            "pools": [ { "pool": "192.168.100.11 - 192.168.100.199" } ],
             
             "option-data": [
                 {
@@ -168,10 +168,18 @@ O arquivo de configuração padrão do Kea é muito extenso e cheio de exemplos.
 
     <br/>
 
+    Permissão do diretório de configuração do Kea-DHCP
+
+    ```bash
+    chmod 755 /etc/kea
+    ```
+    <br>
+
+
 ### 🔍 Entendendo a Configuração
 
 * `interfaces`: Diz ao Kea em qual placa de rede ele deve escutar pedidos. Verifique se o seu é `enp0s3`.
-* `pools`: Define o intervalo de IPs que serão entregues (do .100 ao .199). Reservamos do .200 ao .254 para servidores estáticos.
+* `pools`: Define o intervalo de IPs que serão entregues (do .11 ao .199). Reservamos do .200 ao .254 para servidores estáticos.
 * `routers`: Informa aos clientes quem é o Gateway (Firewall) para saírem para a internet.
 * `domain-name-servers`: Informa aos clientes quem é o DNS (DC01). Isso é crucial para o AD funcionar.
 
