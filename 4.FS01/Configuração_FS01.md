@@ -1,0 +1,314 @@
+# Servidor de Arquivos (FS01)
+
+Este guia cobre a configuração de um servidor de arquivos robusto integrado ao Active Directory. Utilizaremos o Samba no modo **Domain Member**.
+
+**Objetivo:** Criar pastas compartilhadas onde apenas os departamentos corretos tenham acesso (Ex: O pessoal de TI não pode ler a folha de pagamento do RH).
+
+**Informações do Servidor:**
+* **Hostname:** `fs01`
+* **IP:** `192.168.100.203`
+* **Função:** File Server Member
+
+---
+
+## 🛑 Pré-requisitos (Rede e Relógio)
+
+Para entrar no domínio, este servidor precisa encontrar o DC e estar na mesma hora que ele.
+
+
+1. **Definir o Hostname:**
+
+    ```bash
+    hostnamectl set-hostname fs01
+    ```
+<br/>
+
+2. **Configurar IP Estático:**
+
+    Edite o arquivo `/etc/network/interfaces`:
+
+    ```bash
+    vim /etc/network/interfaces
+    ```
+    <br/>
+
+    O arquivo deve conter a configuração da interface LAN (ajuste o nome `enp0s3` conforme seu comando `ip link`):
+
+    ```conf
+    auto lo
+    iface lo inet loopback
+
+    allow-hotplug enp0s3
+    iface enp0s3 inet static
+        address 192.168.100.203/24
+        gateway 192.168.100.1
+    ```
+
+    *Salve e saia.*
+
+<br/>
+
+3. **Configurar DNS Temporário (Para Instalação):**
+
+    Para baixar os pacotes, precisamos de internet. Edite o `/etc/resolv.conf`:
+
+    ```bash
+    vim /etc/resolv.conf
+    ```
+
+    <br/>
+
+    Adicione um DNS público temporariamente:
+
+    ```conf
+    search empresatech.example
+    nameserver 192.168.100.200
+    ```
+    <br/>
+
+4. **Aplicar Rede e Atualizar Hosts:**
+
+    ```bash
+    systemctl restart networking
+    ```
+    <br/>
+
+    Edite o `/etc/hosts` para associar o nome ao IP. 
+      
+    ```bash
+    vim /etc/hosts
+    ```
+    <br/>
+    
+    Apague tudo e adicione o conteúdo abaixo:  
+    ```conf
+    127.0.0.1       localhost
+    192.168.100.203 fs01.empresatech.example fs01
+    ```
+    <br/>
+
+---
+
+## 🕰️ Sincronização de Tempo (Chrony)
+
+O protocolo de segurança do Windows (Kerberos) falha se houver uma diferença de horário maior que 5 minutos entre o servidor e os clientes. O *DC01* será a fonte de hora oficial da rede.
+
+1.  Instale o Chrony:
+   
+    ```bash
+    apt update
+    apt install chrony -y
+    ```
+    <br/>
+
+2.  Configure para permitir que a rede LAN consulte a hora aqui. Edite `/etc/chrony/chrony.conf`:
+    ```bash
+    vim /etc/chrony/chrony.conf
+    ```
+    <br/>
+    
+    Adicione a linha de permissão no final do arquivo:
+    ```conf
+    # Permitir acesso NTP à rede local
+    allow 192.168.100.0/24
+    ```
+    <br/>
+
+3.  Habilite e reinicie o serviço:
+    ```bash
+    systemctl enable chrony
+    systemctl restart chrony
+    ```
+---
+
+## 📦 Passo 1: Instalação e Preparação
+
+Vamos instalar o Samba e o **Winbind**. O Winbind é o "tradutor" que permite ao Linux entender usuários do Windows/AD.
+
+```bash
+apt install samba krb5-config winbind libpam-winbind libnss-winbind -y
+```
+
+Durante a instalação pode ser solicitados alguns dados, responda conforme está abaixo:
+
+- **Realm Kerberos versão 5 padrão**: `EMPRESATECH.EXAMPLE`
+- **Servidores Kerberos para seu realm**: `dc01.empresatech.example`
+- **Servidor administrativo para seu realm Kerberos**: `dc01.empresatech.example`
+
+---
+
+## 🤝 Passo 2: Ingressar no Domínio (Domain Join)
+
+Diferente do DC01 (que cria o domínio), o FS01 precisa pedir permissão para entrar nele.
+
+1. Configurar o Samba (`smb.conf`): Apague o original e crie um novo focado em ser membro.
+
+    ```bash
+    mv /etc/samba/smb.conf /etc/samba/smb.conf.backup
+    vim /etc/samba/smb.conf
+    ```
+
+    <br/>
+
+    Cole este conteúdo:
+
+    ```bash
+    [global]
+       workgroup = EMPRESATECH
+       security = ads
+       realm = EMPRESATECH.EXAMPLE
+    
+       # Logs para facilitar depuração
+       log file = /var/log/samba/%m.log
+       log level = 1
+    
+       # Configuração do Winbind (O Tradutor de IDs)
+       # Mapeia usuários do AD para IDs do Linux automaticamente
+       idmap config * : backend = tdb
+       idmap config * : range = 3000-7999
+    
+       idmap config EMPRESATECH : backend = rid
+       idmap config EMPRESATECH : range = 10000-999999
+    
+       template shell = /bin/bash
+       template homedir = /home/%U
+       winbind use default domain = yes
+       winbind offline logon = yes
+    
+       # Desabilitar suporte a impressoras (opcional, economiza recursos)
+       load printers = no
+       printing = bsd
+       printcap name = /dev/null
+       disable spoolss = yes
+    ```
+
+<br/>
+
+2. Ingressar no AD: Execute o comando para entrar no domínio usando a conta de administrador.
+
+    ```bash
+    net ads join -U Administrator
+    ```
+    >Digite a senha `SenhaForte123!`.
+    
+    <br/>
+    
+    Se tiver sucesso, você verá a mensagem:
+    
+    ```bash
+    Joined 'FS01' to dns domain 'empresatech.example'
+    ```
+
+    <br/>
+
+3. Configurar o Sistema para ver os Usuários: Precisamos dizer ao Debian: "Quando procurar um usuário, olhe no sistema local e TAMBÉM no Winbind".   
+
+    <br/>
+    
+    Edite /etc/nsswitch.conf:
+    
+    ```bash
+    vim /etc/nsswitch.conf
+    ```
+    
+    <br/>
+    
+    Procure as linhas `passwd` e `group` e, se não tiver, adicione `winbind` no final delas, ficará assim:
+    
+    ```bash
+    passwd:         files systemd winbind
+    group:          files systemd winbind
+    ```
+    
+    <br/>
+    
+4. Reiniciar serviços:
+
+    ```bash
+    systemctl restart smbd nmbd winbind
+    ```
+    
+    <br/>
+    
+5. Teste de Conexão: Verifique se o servidor consegue "ver" os usuários do AD.
+
+    ```bash
+    wbinfo -u
+    ```
+    
+    <br/>
+    
+    Se tiver sucesso, você verá a lista de nomes dos usuários, por exemplo:
+    
+    ```bash
+    fabio.costa
+    julia.pereira
+    guest
+    bruno.alves
+    krbtgt
+    daniel.rocha
+    helena.silva
+    elisa.martins
+    ana.souza
+    gabriel.lima
+    carla.dias
+    administrator
+    igor.santos
+    ```
+    
+    <br/>
+    
+    ```bash
+    wbinfo -g
+    ```
+    
+    <br/>
+    
+    Se tiver sucesso, você verá a lista dos grupos, por exemplo:
+    
+    ```bash
+    denied rodc password replication group
+    grp_financeiro
+    grp_rh
+    grp_ti
+    domain admins
+    enterprise read-only domain controllers
+    domain guests
+    ras and ias servers
+    schema admins
+    domain users
+    allowed rodc password replication group
+    dnsadmins
+    cert publishers
+    dnsupdateproxy
+    enterprise admins
+    protected users
+    read-only domain controllers
+    domain controllers
+    group policy creator owners
+    domain computers
+    ```
+
+---
+
+## 📂 Passo 3: Criação das Pastas e Permissões
+
+Vamos criar a estrutura de diretórios e definir quem pode acessar o quê.
+
+1. Criar a estrutura:
+
+    ```bash
+    mkdir -p /srv/samba/financeiro
+    mkdir -p /srv/samba/rh
+    mkdir -p /srv/samba/ti
+    mkdir -p /srv/samba/publico
+    ```
+
+    <br/>
+
+2. **Configurar permissões no nível do Sistema (Linux)**: Por segurança, vamos dizer que o "dono" dessas pastas é o `root`, mas vamos abrir permissão total (777) no nível do disco, e controlar o acesso real no arquivo de configuração do Samba (mais fácil de gerenciar).
+
+    ```bash
+    chmod 777 /srv/samba/*
+    ```
+---
