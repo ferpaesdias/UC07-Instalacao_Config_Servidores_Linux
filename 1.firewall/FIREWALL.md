@@ -79,7 +79,7 @@ Por padrão, o Linux é "egoísta": se ele recebe um pacote que não é para ele
 1. Crie o arquivo abaixo:
 
    ```bash
-   vim /etc/sysctl.conf.d/99-forwarding.conf
+   vim /etc/sysctl.d/99-forwarding.conf
    ```
 
 2. Adicione o conteúdo abaixo:
