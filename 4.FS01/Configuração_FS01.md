@@ -312,3 +312,55 @@ Vamos criar a estrutura de diretórios e definir quem pode acessar o quê.
     chmod 777 /srv/samba/*
     ```
 ---
+
+## 📂 Passo 4: Configurando os Compartilhamentos
+
+Agora vamos editar o smb.conf novamente para expor essas pastas na rede, aplicando as restrições de segurança por grupo.
+
+1. Edite `/etc/samba/smb.conf` e adicione ao final do arquivo:
+
+    ```bash
+    # --- Compartilhamentos Departamentais ---
+
+    [Financeiro]
+        path = /srv/samba/financeiro
+        read only = no
+        browsable = yes
+        # Apenas o grupo financeiro acessa
+        valid users = @grp_financeiro
+        # Cria arquivos com permissão de escrita para o grupo
+        create mask = 0770
+        directory mask = 0770
+
+    [RecursosHumanos]
+        path = /srv/samba/rh
+        read only = no
+        browsable = yes
+        valid users = @grp_rh
+        create mask = 0770
+        directory mask = 0770
+
+    [Tecnologia]
+        path = /srv/samba/ti
+        read only = no
+        browsable = yes
+        valid users = @grp_ti
+        create mask = 0770
+        directory mask = 0770
+
+    [Publico]
+        path = /srv/samba/publico
+        read only = no
+        browsable = yes
+        # Todos os usuários do domínio podem acessar
+        valid users = @"Domain Users"
+    ```
+
+     <br/>
+
+2. Aplicar alterações:
+
+    ```bash
+    smbcontrol all reload-config
+    ```
+---
