@@ -145,6 +145,59 @@ systemctl stop smbd nmbd winbind
 systemctl disable smbd nmbd winbind
 mv /etc/samba/smb.conf /etc/samba/smb.conf.backup
 ```
+<br>
+
+Crie um backup do arquivo `/etc/krb5.conf`:
+
+```bash
+mv /etc/krb5.conf /etc/krb5.conf.backup
+```
+<br>
+
+Edite o arquivo
+
+```bash
+vim /etc/krb5.conf
+```
+<br>
+
+Apague todo o conteúdo e adicione a configuração abaixo:
+
+```conf
+[libdefaults]
+	default_realm = EMPRESATECH.EXAMPLE
+	dns_lookup_realm = false
+	dns_lookup_kdc = true
+```
+<br>
+
+Agora, edite o arquivo `/etc/samba/smb.conf `:
+
+```bash
+vim /etc/samba/smb.conf 
+```
+<br>
+
+Na seção `[global]`, abaixo da linha `workgroup = EMPRESATECH`, adicione a configuração `dns forwarder = 8.8.8.8`. Deve ficar igual está abaixo:
+
+```bash
+# Global parameters
+[global]
+	netbios name = DC02
+	realm = EMPRESATECH.EXAMPLE
+	server role = active directory domain controller
+	workgroup = EMPRESATECH
+	dns forwarder = 8.8.8.8	
+
+[sysvol]
+	path = /var/lib/samba/sysvol
+	read only = No
+
+[netlogon]
+	path = /var/lib/samba/sysvol/empresatech.example/scripts
+	read only = No
+```
+
 ---
 
 ## 🔄 Passo 4: Ingressar como DC (Join)
