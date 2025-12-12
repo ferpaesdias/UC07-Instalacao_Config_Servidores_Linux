@@ -1,297 +1,206 @@
-# 🖥️ Configuração do Servidor **DC02** 
+# Controlador de Domínio Secundário (DC02)
 
-## Samba Active Directory Domain Controller
-
----
-
-## 🌐 1. Dados do Ambiente
-| Componente | Valor |
-|-----------|-------|
-| Hostname | **dc02** |
-| Endereço IP | **192.168.100.201/24** |
-| Gateway | **192.168.100.1** |
-| Domínio AD (NetBIOS) | **EMPRESATECH** |
-| Realm (Kerberos) | **EMPRESATECH.EXAMPLE** |
-| Zona DNS | **empresatech.example** |
-| Zona reversa | **100.168.192.in-addr.arpa** |
-
----
-
-## 🧩 2. Preparação Inicial do Sistema
-
-### 2.1 Definir o hostname
-```bash
-sudo hostnamectl set-hostname dc02
-```
-
-<br/>
-
-### 2.2 Configurar o arquivo `/etc/hosts`
-
-Substitua o conteúdo por:
-
-```
-127.0.0.1        localhost
-192.168.100.201  dc02.empresatech.example  dc02
-```
-
-<br/>
-
-### 2.3 Configurar IP estático
-
-Configure o endereço IP da interface de rede no arquivo `/etc/network/interfaces`. No nosso exemplo, a interface de rede é a `enp0s3`:
-
-```
-auto enp0s3
-iface enp0s3 inet static
-  address 192.168.100.201/24
-  gateway 192.168.100.1
-```
-
-<br/>
-
-### 2.4 Definir DNS
-
-Edite o arquivo `/etc/resolv.conf`: 
-
-```
-nameserver  192.168.100.201
-nameserver  192.168.100.200
-domain      empresatech.example
-search      empresatech.example
-```
-
----
-
-## 🕒 3. Sincronização de Horário (NTP)
-
-Instalação do Chrony:
-
-```bash
-sudo apt update
-sudo apt install -y chrony
-```
-
-<br/>
-
-No arquivo `/etc/chrony/chrony.conf`, comente a linha `pool 2.debian.pool.ntp.org iburst` e adicione os **servers** do [NTP.br](https://ntp.br/). Siga o exemplo abaixo:
-
-```
-# Use Debian vendor zone.
-# pool 2.debian.pool.ntp.org iburst   # Comente esta linha
-
-# Adicione estas linhas 
-server a.ntp.br iburst
-server b.ntp.br iburst
-server c.ntp.br iburst
-```
-
-<br/>
-
-Reinicie e ative o serviço:
-
-```bash
-sudo systemctl restart chrony
-sudo systemctl enable chrony
-sudo systemctl status chrony
-```
-
-<br/>
-
-Verifique quais servidores o **chronyd** está consultando
-
-```bash
-chronyc sources
-```
-
-<br/>
-
-Output:
-
-```bash
-MS Name/IP address         Stratum Poll Reach LastRx Last sample               
-===============================================================================
-^* a.ntp.br                      2   6   377    48   +975us[+1820us] +/- 9649us
-^- b.ntp.br                      2   6   377    47   -312us[ -312us] +/-   52ms
-^+ c.ntp.br                      2   6   377    48  +2046us[+2890us] +/-   28ms
-
-```
-
----
-
-## 📦 4. Instalação do Samba
-
-Instalando o Samba e suas dependências:
-
-```bash
-sudo apt-get install -y acl attr samba winbind libpam-winbind libnss-winbind krb5-config krb5-user bind9-dnsutils python3-setproctitle
-```
-
-<br/>
-
-Durante a instalação pode ser solicitados alguns dados, responda conforme está abaixo:
-
-- **Realm Kerberos versão 5 padrão**: Deixe em branco
-- **Servidores Kerberos para seu realm**: Deixe em branco
-- **Servidor administrativo para seu realm Kerberos**: Deixe em branco
+Este documento detalha como configurar um servidor Debian limpo para ingressar no domínio `empresatech.example` como um Controlador de Domínio (DC) Adicional.
 
 --- 
 
-##  🏗️ 5. Promovendo servidor Samba a Domain Controller
+## Panorama Geral da Solução
 
-Faça um backup do arquivo `/etc/krb5.conf`:
+* **Objetivo**: O DC02 irá replicar todo o banco de dados do Active Directory (usuários, senhas, grupos, DNS) do DC01.
+* **Método**: Utilizaremos o modo de "Ingresso como Controlador de Domínio" do Samba 4.
+* **Fluxo**: O DC02 aponta o DNS para o DC01 -> Ingressa no domínio -> Copia os dados -> Torna-se um servidor autônomo.
 
-```bash
-sudo mv /etc/krb5.conf /etc/krb5.conf.bkp
-```
-
-<br/>
-
-Edite o arquivo `/etc/krb5.conf` com o conteúdo abaixo:
-
-```bash
-[libdefaults]
-  default_realm = EMPRESATECH.EXAMPLE
-  dns_lookup_realm = false
-  dns_lookup_kdc = true
-```
-
-<br/>
-
-Teste com o comando:
-
-```bash
-kinit administrator
-```
-Será solicitada a senha do usuário *administrator* (administrador do domínio).
-
-<br/>
-
-A saída do comando será semelhante a abaixo:
-
-```bash
-Warning: Your password will expire in 38 days on dom 28 dez 2025 10:31:38
-```
-
-<br/>
-
-Em seguida use o comando abaixo para verificar o ticket Kerberos criado com o comando acima:
-
-```bash
-klist
-```
-Kerberos é o sistema de autenticação usado pelo Active Directory.
-É um comando usado para ver os tickets Kerberos que estão armazenados no computador.
-
-<br/>
-
-A saída será igual a esta:
-
-```bash
-Ticket cache: FILE:/tmp/krb5cc_1000
-Default principal: administrator@EMPRESATECH.EXAMPLE
-
-Valid starting       Expires              Service principal
-19/11/2025 10:43:16  19/11/2025 20:43:16  krbtgt/EMPRESATECH.EXAMPLE@EMPRESATECH.EXAMPLE
-	renew until 20/11/2025 10:43:13
-```
-
-<br/>
-
-Desative serviços “legados” que não se usam em AD DC:
-
-```bash
-sudo systemctl stop smbd nmbd winbind
-sudo systemctl disable smbd nmbd winbind
-sudo systemctl mask smbd nmbd winbind
-```
-
-<br/>
-
-Faça um backup do arquivo de configuração do Samba:
-
-```bash
-sudo mv /etc/samba/smb.conf /etc/samba/smb.conf.bkp
-```
-
-<br/>
-
-Ingressar o servidor DC02 no domínio:
-
-```bash
-sudo samba-tool domain join empresatech.example DC --dns-backend=SAMBA_INTERNAL -U "EMPRESATECH\Administrator"
-```
-
-- **samba-tool domain join**: Instrução para ingressar o servidor no domínio.
-- **empresatech.example**: É o realm/DNS do domínio AD ao qual o novo servidor vai se juntar.
-- **DC**: Define o papel do servidor. *DC* significa que o servidor será um Controlador de Domínio.
-- **--dns-backend=SAMBA_INTERNAL**: Define qual DNS o novo DC usará. *SAMBA_INTERNAL* é o DNS interno do Samba
-- **-U "EMPRESATECH\Administrator"**: Usuário usado para autenticar a entrada no domínio.
 ---
 
+## 🛑 Pré-requisitos de Rede
 
-## 🌍 6. Configuração do DNS Interno do Samba
+O Controlador de Domínio Secundário precisa de um IP fixo e um nome definido.
 
-Acesse o arquivo de configuração do Samba `/etc/samba/smb.conf` e insira o parâmetro `dns forwarder = 8.8.8.8` abaixo de `workgroup = EMPRESATECH`, conforme o exemplo abaixo:
+1. **Definir o Hostname:**
 
-```bash
-# Global parameters
-[global]
-	netbios name = DC02
-	realm = EMPRESATECH.EXAMPLE
-	server role = active directory domain controller
-	workgroup = EMPRESATECH
-	dns forwarder = 8.8.8.8
-
-[sysvol]
-	path = /var/lib/samba/sysvol
-	read only = No
-
-[netlogon]
-	path = /var/lib/samba/sysvol/empresatech.example/scripts
-	read only = No
-
-```
-
+    ```bash
+    hostnamectl set-hostname dc02
+    ```
 <br/>
 
-Teste os parâmetros do arquivo `smb.conf`:
+2. **Configurar IP Estático:**
+
+    Edite o arquivo `/etc/network/interfaces`:
+
+    ```bash
+    vim /etc/network/interfaces
+    ```
+    <br/>
+
+    O arquivo deve conter a configuração da interface LAN (ajuste o nome `enp0s3` conforme seu comando `ip link`):
+
+    ```conf
+    auto lo
+    iface lo inet loopback
+
+    allow-hotplug enp0s3
+    iface enp0s3 inet static
+        address 192.168.100.201/24
+        gateway 192.168.100.1
+    ```
+
+    *Salve e saia.*
+
+    <br/>
+
+3. **Configurar DNS:**
+
+    Edite o `/etc/resolv.conf`:
+
+    ```bash
+    vim /etc/resolv.conf
+    ```
+
+    <br/>
+
+    Altere o conteúdo para apontar para o DC01:
+
+    ```conf
+    search empresatech.example
+    nameserver 192.168.100.200
+    ```
+    <br/>
+
+2. **Aplicar Rede e Atualizar Hosts:**
+
+    ```bash
+    systemctl restart networking
+    ```
+    <br/>
+
+    Edite o `/etc/hosts` para associar o nome ao IP. 
+      
+    ```bash
+    vim /etc/hosts
+    ```
+    <br/>
+    
+    Apague tudo e adicione o conteúdo abaixo:  
+    ```conf
+    127.0.0.1       localhost
+    192.168.100.201 dc02.empresatech.example dc02
+    ```
+    <br/>
+
+---
+
+## 🕰️ Passo 1: Sincronização de Tempo (Chrony)
+
+O protocolo de segurança do Windows (Kerberos) falha se houver uma diferença de horário maior que 5 minutos entre o servidor e os clientes. O DC será a fonte de hora oficial da rede.
+
+1.  Instale o Chrony:
+   
+    ```bash
+    apt update
+    apt install chrony -y
+    ```
+    <br/>
+
+2.  Configure para permitir que a rede LAN consulte a hora aqui. Edite `/etc/chrony/chrony.conf`:
+    ```bash
+    vim /etc/chrony/chrony.conf
+    ```
+    <br/>
+    
+    Adicione a linha de permissão no final do arquivo:
+    ```conf
+    # Permitir acesso NTP à rede local
+    allow 192.168.100.0/24
+    ```
+    <br/>
+
+3.  Habilite e reinicie o serviço:
+    ```bash
+    systemctl enable chrony
+    systemctl restart chrony
+    ```
+
+---
+
+## 📦 Passo 2: Instalação do Samba AD DC
+
+Vamos instalar os pacotes necessários para o Samba funcionar como um substituto do Windows Server.
 
 ```bash
-sudo testparm
+apt install samba smbclient krb5-user winbind libnss-winbind libpam-winbind -y
 ```
+Durante a instalação pode ser solicitados alguns dados, responda conforme está abaixo:
 
-<br/>
+- **Realm Kerberos versão 5 padrão**: `EMPRESATECH.EXAMPLE`
+---
 
-Reinicie o serviço do Samba:
+## ⚙️ Passo 3: Preparar o Ambiente
+
+Agora vamos configurar o preparar o ambiente.
+
+**Limpar configurações padrão**: O serviço padrão do Samba para arquivos (smbd) conflita com o serviço de Domínio (samba-ad-dc). Vamos desativar os antigos e limpar a configuração.
 
 ```bash
-sudo systemctl restart samba-ad-dc
+systemctl stop smbd nmbd winbind
+systemctl disable smbd nmbd winbind
+mv /etc/samba/smb.conf /etc/samba/smb.conf.backup
 ```
+---
 
-<br/>
+## 🔄 Passo 4: Ingressar como DC (Join)
 
-Teste se o DNS está fazendo consultas externas:
+Este é o comando principal que transforma o servidor em um Controlador de Domínio Secundário.
 
 ```bash
-nslookup google.com
+samba-tool domain join empresatech.example DC -U "EMPRESATECH\administrator" --dns-backend=SAMBA_INTERNAL
 ```
+>O sistema pedirá a senha do Administrator do domínio. Digite e aguarde a mensagem "Joined domain empresatech.example".
 
-<br/>
+---
 
-Output:
+## ✅ Passo 5: Ativar o Serviço
+
+Agora vamos iniciar o Active Directory no DC02.
 
 ```bash
-Server:		192.168.100.201
-Address:	192.168.100.201#53
+# Desmascara o serviço (caso esteja oculto)
+systemctl unmask samba-ad-dc
 
-Non-authoritative answer:
-Name:	google.com
-Address: 142.250.78.142
-Name:	google.com
-Address: 2800:3f0:4001:80e::200e
+# Habilita para iniciar no boot
+systemctl enable samba-ad-dc
+
+# Inicia o serviço agora
+systemctl start samba-ad-dc
 ```
+---
 
-<br/>
+## 🛠️ Passo 6: Ajustar DNS Pós-Instalação
+
+Agora que o DC02 é um servidor funcional, ele deve apontar para si mesmo (para agilidade) e para o DC01 (para redundância).
+
+```bash
+vim /etc/resolv.conf
+```
+<br>
+
+Atualize para:
+
+```bash
+search empresatech.example
+nameserver 127.0.0.1
+nameserver 192.168.100.200
+```
+---
+
+## 🔍 Passo 7: Verificação da Replicação
+
+Para ter certeza de que o DC01 e DC02 estão conversando e trocando dados de usuários, execute este comando no DC02:
+
+```bash
+samba-tool drs showrepl
+```
+O que procurar na saída: Você verá várias seções (Schema, Configuration, DomainDnsZones). Procure pela frase: `Last attempt @ [Data] was successful`.
+
+Se todas as tentativas estiverem como `successful`, o seu DC02 está operacional e sincronizado.
 
 ---
