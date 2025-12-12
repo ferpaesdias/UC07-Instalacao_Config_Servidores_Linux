@@ -133,9 +133,9 @@ id administrator@empresatech.example
 
 Para entrar com a interface gráfica:
 
-* Faça *Logoff* do usuário local.
-* Clique em "**Não está listado**?".
-* **Usuário**: carla.dias@empresatech.example (ou outro usuário que você criou no AD).
+* Faça **Logoff** do usuário local.
+* Clique em "**Não está listado?**".
+* **Usuário**: `carla.dias@empresatech.example` (ou outro usuário que você criou no AD).
 * **Senha**: A senha do usuário.
 
 ---
