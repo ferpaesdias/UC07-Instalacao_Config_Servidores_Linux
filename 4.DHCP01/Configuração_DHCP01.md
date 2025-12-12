@@ -65,6 +65,7 @@ O Controlador de Domínio é o servidor mais importante da rede. Ele precisa de 
     ```conf
     search empresatech.example
     nameserver 192.168.100.200
+    nameserver 192.168.100.201
     ```
     <br/>
 
@@ -153,7 +154,7 @@ O arquivo de configuração padrão do Kea é muito extenso e cheio de exemplos.
                 },
                 {
                     "name": "domain-name-servers",
-                    "data": "192.168.100.200"
+                    "data": "192.168.100.200, 192.168.100.201"
                 },
                 {
                     "name": "domain-name",

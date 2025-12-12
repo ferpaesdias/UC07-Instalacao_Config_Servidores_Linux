@@ -63,6 +63,7 @@ Para entrar no domínio, este servidor precisa encontrar o DC e estar na mesma h
     ```conf
     search empresatech.example
     nameserver 192.168.100.200
+    nameserver 192.168.100.201
     ```
     <br/>
 
