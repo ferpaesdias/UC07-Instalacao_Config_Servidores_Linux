@@ -4,6 +4,8 @@ Bem-vindo ao guia passo a passo para a construção de uma infraestrutura de TI 
 
 Este projeto foi desenhado para **iniciantes**. O objetivo não é apenas digitar comandos, mas entender como os servidores conversam entre si, como proteger uma rede e como gerenciar usuários em um ambiente profissional.
 
+<br>
+
 ## 🗺️ Topologia de Rede
 
 O nosso laboratório simula uma empresa real com segmentação de rede para segurança.
@@ -15,6 +17,8 @@ O nosso laboratório simula uma empresa real com segmentação de rede para segu
 | **WAN** | DHCP (ISP) | Conexão com a Internet (via NAT do VirtualBox) |
 | **DMZ** | `172.20.0.0/24` | Zona Desmilitarizada (Serviços acessíveis de fora) |
 | **LAN** | `192.168.100.0/24` | Rede Local (Servidores internos e Estações) |
+
+<br>
 
 ## 🖥️ Inventário de Servidores
 
@@ -30,29 +34,40 @@ O nosso laboratório simula uma empresa real com segmentação de rede para segu
 | **WEB01** | 172.20.0.200 | Servidor Web (Intranet/Extranet) | Nginx |
 | **SYS01** | 172.20.0.201 | Sistema Interno | App Customizada (:8080) |
 
+<br>
+
 ## 👥 Estrutura de Usuários e Grupos
 
 Neste laboratório, vamos gerenciar a autenticação centralizada. Estes são os funcionários da nossa empresa fictícia:
 
-### 1. Departamento Financeiro (`grp_financeiro`)
+### 1. Departamento Financeiro (`Financeiro`)
 
 * Ana Souza (`ana.souza`)
 * Bruno Alves (`bruno.alves`)
 * Carla Dias (`carla.dias`)
+* Julia Pereira (`julia.pereira`)
 
-### 2. Recursos Humanos (`grp_rh`)
+<br>
+
+### 2. Recursos Humanos (`RH`)
 
 * Daniel Rocha (`daniel.rocha`)
 * Elisa Martins (`elisa.martins`)
 * Fabio Costa (`fabio.costa`)
+* Igor Santos (`igor.santos`)
 
-### 3. Tecnologia / TI (`grp_ti`)
+<br>
+
+### 3. Tecnologia / TI (`TI`)
 
 * Gabriel Lima (`gabriel.lima`)
 * Helena Silva (`helena.silva`)
-* Igor Santos (`igor.santos`)
-* Julia Pereira (`julia.pereira`)
 
+<br>
+
+### 4. Diretoria (`Diretoria`)
+
+* Luis Divino (`luis.divino`)
 ---
 
 ## 🛠️ Pré-requisitos
@@ -62,12 +77,4 @@ Neste laboratório, vamos gerenciar a autenticação centralizada. Estes são os
 * ISO do **Debian 13 (Trixie)** Netinst.
 * Vontade de aprender!
 
-## 📚 Como usar este guia
-
-Siga os documentos na ordem numérica abaixo. Cada guia contém a explicação teórica seguida da prática.
-
-1. [Firewall.md](./1.Firewall/Firewall.md) - *Onde tudo começa.*
-2. [Controlador_DC01.md](./2.DC01/Controlador_DC01.md) - *A base da identidade.*
-3. [Servico_DHCP01.md](./3.DHCP01/Servico_DHCP01.md) - *Automação de IPs.*
-4. [Controlador_DC02.md](./2.DC01/Controlador_DC02.md) - *A base da identidade secundária.*
-5. [FS01.md](./docs/FS01.md) - *Compartilhamento seguro.*
+---
