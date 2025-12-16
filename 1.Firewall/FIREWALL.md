@@ -215,7 +215,7 @@ Vamos criar regras que:
 3. Aplicar a configuração do Nftables:
 
    ```bash
-   sudo nft -f /etc/nftables.conf
+   nft -f /etc/nftables.conf
    ```
 
 4. Habilitar o serviço do Nftables:
