@@ -76,7 +76,7 @@ sudo systemctl restart systemd-timesyncd
 Veja o status do serviço:
 
 ```bash
-sudo timedatectl show-timesync
+sudo timedatectl show-time
 ```
 
 ---
@@ -87,16 +87,8 @@ Instale o `realmd` e as dependências necessárias para a comunicação com o AD
 
 ```bash
 sudo apt update
-sudo apt install realmd sssd sssd-tools libnss-sss libpam-sss adcli packagekit -y
+sudo apt install realmd sssd sssd-tools libnss-sss libpam-sss adcli packagekit samba-common-bin -y
 ``` 
-
-<br>
-
-Saída esperada: 
-
-```
-estacao01.empresatech.example
-```
 
 <br>
 
