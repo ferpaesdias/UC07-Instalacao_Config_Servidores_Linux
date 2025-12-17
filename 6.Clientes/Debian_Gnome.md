@@ -31,7 +31,7 @@ Abra o terminal no seu cliente Debian e siga os comandos abaixo.
 
 <br>
 
-### Passo 1: Configurar o Nome da Máquina (Hostname)
+### Configurar o Nome da Máquina (Hostname)
 
 Vamos definir o nome deste computador. Usaremos `estacao01` como exemplo para manter a organização da empresa.
 
@@ -50,10 +50,38 @@ Saída esperada:
 ```
 estacao01.empresatech.example
 ```
+---
+
+### Configurar a sincronização de horário
+echo 
+Agora vamos sincronizar o horário do computador cliente com os servidores DC01 e DC02.
+
+Execute os comandos abaixo para configurar o serviço `systemd-timesyncd`:
+
+```bash
+sudo mkdir /etc/systemd/timesyncd.conf.d
+sudo echo -e '[Time]\nNTP="192.168.100.200 192.168.100.201"' | sudo tee /etc/systemd/timesyncd.conf.d/ntp.conf
+```
 
 <br>
 
-### Passo 2: Instalar Pacotes de Integração
+Reinicie o serviço:
+
+```bash
+sudo systemctl restart systemd-timesyncd
+```
+
+<br>
+
+Veja o status do serviço:
+
+```bash
+sudo timedatectl show-timesync
+```
+
+---
+
+### Instalar Pacotes de Integração
 
 Instale o `realmd` e as dependências necessárias para a comunicação com o AD.
 
@@ -72,7 +100,7 @@ estacao01.empresatech.example
 
 <br>
 
-### Passo 3: Descobrir o Domínio
+### Descobrir o Domínio
 
 Vamos verificar se o cliente consegue encontrar o domínio gerenciado pelo DC01.
 
@@ -84,7 +112,7 @@ sudo realm discover empresatech.example
 
 <br>
 
-### Passo 4: Ingressar no Domínio
+### Ingressar no Domínio
 
 Agora faremos a união oficial.
 
@@ -96,7 +124,7 @@ sudo realm join empresatech.example -U administrator
 
 <br>
 
-### Passo 5: Configurar Criação Automática de Pasta Pessoal
+### Configurar Criação Automática de Pasta Pessoal
 
 Para que o usuário do domínio tenha onde salvar seus arquivos ao logar pela primeira vez no Gnome.
 
