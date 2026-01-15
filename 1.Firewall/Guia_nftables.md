@@ -1,10 +1,3 @@
----
-export_on_save:
-    puppeteer: true # export PDF on save
-    puppeteer: ["pdf"]
----
-
-
 # Guia Completo de nftables para Iniciantes
 
 ## Sumário
