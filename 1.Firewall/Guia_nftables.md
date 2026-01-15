@@ -1,3 +1,10 @@
+---
+export_on_save:
+    puppeteer: true # export PDF on save
+    puppeteer: ["pdf"]
+---
+
+
 # Guia Completo de nftables para Iniciantes
 
 ## Sumário
@@ -17,6 +24,8 @@
 
 Imagine um firewall como um porteiro de um prédio. Ele decide quem pode entrar, quem pode sair e quais andares cada pessoa pode acessar. No mundo dos computadores, o firewall controla o tráfego de dados que entra e sai do seu sistema, permitindo ou bloqueando conexões baseadas em regras que você define.
 
+<br/>
+
 ### nftables vs iptables: Uma Breve História
 
 Por muitos anos, o **iptables** foi a ferramenta padrão para configurar firewalls no Linux. O **nftables** é sua evolução moderna, introduzido para resolver limitações do iptables. Pense no iptables como um telefone fixo antigo e no nftables como um smartphone: ambos fazem ligações, mas o smartphone é mais eficiente, flexível e fácil de usar.
@@ -26,6 +35,8 @@ Por muitos anos, o **iptables** foi a ferramenta padrão para configurar firewal
 - Melhor performance (processa regras mais rapidamente)
 - Configuração unificada (um único comando para IPv4 e IPv6)
 - Menos código duplicado
+
+<br/>
 
 ### Nossa Topologia de Rede
 
@@ -65,6 +76,8 @@ Tabelas são como departamentos em uma empresa. Cada departamento tem uma funç�
 
 **Recomendação para iniciantes:** Use tabelas do tipo **inet** para simplificar sua configuração.
 
+<br/>
+
 ### 2. Chains (Correntes)
 
 Chains são como pontos de verificação onde o tráfego passa. Imagine uma esteira de aeroporto com vários checkpoints de segurança. As chains principais são:
@@ -75,6 +88,8 @@ Chains são como pontos de verificação onde o tráfego passa. Imagine uma este
 - **prerouting**: processa pacotes ANTES do roteamento (usado para DNAT)
 - **postrouting**: processa pacotes DEPOIS do roteamento (usado para SNAT/Masquerade)
 
+<br/>
+
 ### 3. Rules (Regras)
 
 Regras são as instruções específicas: "se o pacote vem da internet, bloqueie" ou "se é para a porta 80, permita". Cada regra tem:
@@ -82,12 +97,16 @@ Regras são as instruções específicas: "se o pacote vem da internet, bloqueie
 - **Conditions**: condições que o pacote deve atender (porta, IP de origem, protocolo)
 - **Actions**: o que fazer com o pacote (accept, drop, reject)
 
+<br/>
+
 ### 4. Policy (Política Padrão)
 
 A policy é o comportamento padrão quando nenhuma regra específica se aplica. É como uma placa "proibido estacionar, exceto moradores". Existem duas abordagens:
 
 - **Política restritiva (recomendada)**: bloqueie tudo por padrão, permita apenas o necessário
 - **Política permissiva**: permita tudo por padrão, bloqueie o que for perigoso
+
+<br/>
 
 ### 5. Sets (Conjuntos)
 
@@ -98,6 +117,8 @@ Sets são listas de valores que você pode reutilizar. Em vez de criar 10 regras
 ## Estrutura do Arquivo nftables.conf
 
 O arquivo de configuração principal do nftables fica em `/etc/nftables.conf` no Debian. Este arquivo é carregado automaticamente na inicialização do sistema.
+
+<br/>
 
 ### Estrutura Básica
 
@@ -122,6 +143,8 @@ table inet filter {
     }
 }
 ```
+
+<br/>
 
 ### Exemplo Completo e Comentado para Nossa Topologia
 
@@ -227,19 +250,31 @@ table inet nat {
 }
 ```
 
+<br/>
+
 ### Explicação Detalhada das Seções
 
+<br/>
+
 **1. Flush ruleset**: limpa todas as regras existentes para começar do zero. Cuidado: se você executar isso remotamente sem ter regras que permitam SSH, perderá a conexão!
+
+<br/>
 
 **2. Policy drop vs accept**: 
 - `policy drop` significa "bloquear tudo, exceto o que eu permitir explicitamente" (mais seguro)
 - `policy accept` significa "permitir tudo, exceto o que eu bloquear explicitamente" (menos seguro)
 
+<br/>
+
 **3. ct state (connection tracking)**: o firewall "lembra" de conexões ativas. Se você iniciou uma conexão da LAN para a internet, as respostas são automaticamente aceitas.
+
+<br/>
 
 **4. iifname e oifname**: 
 - `iifname` = interface de entrada (input interface)
 - `oifname` = interface de saída (output interface)
+
+<br/>
 
 **5. Priority**: número que define a ordem de processamento. Números menores são processados primeiro. Para NAT, prerouting usa prioridade negativa para ser processado antes da filtragem.
 
@@ -249,10 +284,14 @@ table inet nat {
 
 ### 1. Visualizando Configurações
 
+<br/>
+
 **Listar todas as regras:**
 ```bash
 sudo nft list ruleset
 ```
+
+<br/>
 
 **Resultado esperado:**
 ```
@@ -265,10 +304,14 @@ table inet filter {
 }
 ```
 
+<br/>
+
 **Listar apenas uma tabela específica:**
 ```bash
 sudo nft list table inet filter
 ```
+
+<br/>
 
 **Listar apenas uma chain específica:**
 ```bash
@@ -277,10 +320,14 @@ sudo nft list chain inet filter input
 
 ### 2. Adicionando Regras Dinamicamente
 
+<br/>
+
 **Sintaxe geral:**
 ```bash
 sudo nft add rule [families] [tables] [chain] [conditions] [action]
 ```
+
+<br/>
 
 **Exemplo 1: Permitir HTTP na chain forward**
 ```bash
@@ -289,12 +336,16 @@ sudo nft add rule inet filter forward iifname "enp2s0" tcp dport 80 accept
 
 **Explicação:** Esta regra permite que dispositivos na LAN1 (enp2s0) acessem servidores web (porta 80).
 
+<br/>
+
 **Exemplo 2: Bloquear um IP específico**
 ```bash
 sudo nft add rule inet filter input ip saddr 203.0.113.5 drop
 ```
 
 **Explicação:** Bloqueia qualquer tráfego vindo do IP 203.0.113.5.
+
+<br/>
 
 **Exemplo 3: Adicionar regra no início da chain (posição 0)**
 ```bash
@@ -305,7 +356,11 @@ sudo nft insert rule inet filter input position 0 tcp dport 443 accept
 - `add`: adiciona a regra no **final** da chain
 - `insert`: adiciona a regra no **início** da chain (posição 0) ou em posição específica
 
+<br/>
+
 ### 3. Deletando Regras
+
+<br/>
 
 **Método 1: Por handle (identificador único)**
 
@@ -313,6 +368,8 @@ Primeiro, liste as regras com handles:
 ```bash
 sudo nft -a list chain inet filter input
 ```
+
+<br/>
 
 **Resultado:**
 ```
@@ -324,10 +381,14 @@ chain input {
 }
 ```
 
+<br/>
+
 Agora delete a regra específica:
 ```bash
 sudo nft delete rule inet filter input handle 12
 ```
+
+<br/>
 
 **Método 2: Deletar chain inteira**
 ```bash
@@ -336,17 +397,25 @@ sudo nft delete chain inet filter input
 
 ⚠️ **AVISO:** Deletar uma chain remove todas as suas regras!
 
+<br/>
+
 ### 4. Limpando Configurações
+
+<br/>
 
 **Limpar todas as regras de uma tabela:**
 ```bash
 sudo nft flush table inet filter
 ```
 
+<br/>
+
 **Limpar todas as regras de uma chain:**
 ```bash
 sudo nft flush chain inet filter input
 ```
+
+<br/>
 
 **Limpar TUDO (todas as tabelas e regras):**
 ```bash
@@ -355,44 +424,64 @@ sudo nft flush ruleset
 
 ⚠️ **PERIGO:** Este comando remove todas as regras de firewall! Use com extrema cautela, especialmente em conexões remotas.
 
+<br/>
+
 ### 5. Salvando e Restaurando Configurações
+
+<br/>
 
 **Salvar configuração atual em arquivo:**
 ```bash
 sudo nft list ruleset > /etc/nftables.conf
 ```
 
+<br/>
+
 **Carregar configuração de arquivo:**
 ```bash
 sudo nft -f /etc/nftables.conf
 ```
+
+<br/>
 
 **Recarregar o serviço nftables:**
 ```bash
 sudo systemctl reload nftables
 ```
 
+<br/>
+
 **Verificar status do serviço:**
 ```bash
 sudo systemctl status nftables
 ```
 
+<br/>
+
 ### 6. Trabalhando com Sets
+
+<br/>
 
 **Criar um set:**
 ```bash
 sudo nft add set inet filter blacklist { type ipv4_addr \; }
 ```
 
+<br/>
+
 **Adicionar elementos ao set:**
 ```bash
 sudo nft add element inet filter blacklist { 198.51.100.5, 198.51.100.6 }
 ```
 
+<br/>
+
 **Usar o set em uma regra:**
 ```bash
 sudo nft add rule inet filter input ip saddr @blacklist drop
 ```
+
+<br/>
 
 **Listar elementos do set:**
 ```bash
@@ -408,6 +497,8 @@ sudo nft list set inet filter blacklist
 NAT permite que múltiplos dispositivos em uma rede interna compartilhem um único IP público.
 
 **Conceito:** Imagine um prédio com muitos apartamentos, mas apenas um endereço postal. O porteiro (NAT) recebe toda a correspondência e distribui para os apartamentos corretos.
+
+<br/>
 
 #### Masquerade (SNAT Dinâmico)
 
@@ -429,6 +520,8 @@ table inet nat {
 4. Google responde para 203.0.113.10
 5. Firewall traduz de volta para 192.168.1.50
 
+<br/>
+
 #### SNAT Estático
 
 Usado quando você tem um IP público fixo.
@@ -442,11 +535,15 @@ table inet nat {
 }
 ```
 
+<br/>
+
 ### 2. Port Forwarding (DNAT)
 
 Permite que serviços internos sejam acessíveis da internet.
 
 **Cenário:** Você tem um servidor web na LAN1 (192.168.1.100) e quer que ele seja acessível da internet.
+
+<br/>
 
 #### Exemplo 1: Redirecionar porta 80 (HTTP)
 
@@ -459,6 +556,8 @@ table inet nat {
 }
 ```
 
+<br/>
+
 **Também é necessário permitir na chain forward:**
 ```bash
 table inet filter {
@@ -469,6 +568,8 @@ table inet filter {
     }
 }
 ```
+
+<br/>
 
 #### Exemplo 2: Redirecionar porta diferente
 
@@ -483,6 +584,8 @@ table inet nat {
 }
 ```
 
+<br/>
+
 ### 3. Filtragem Básica
 
 #### Exemplo 1: Bloquear acesso a site específico
@@ -492,6 +595,8 @@ table inet nat {
 sudo nft add rule inet filter forward ip daddr 93.184.216.34 drop
 ```
 
+<br/>
+
 #### Exemplo 2: Limitar taxa de conexões (proteção contra flood)
 
 ```bash
@@ -499,6 +604,8 @@ sudo nft add rule inet filter input tcp dport 22 limit rate 5/minute accept
 ```
 
 **Explicação:** Aceita apenas 5 conexões SSH por minuto, protegendo contra ataques de força bruta.
+
+<br/>
 
 #### Exemplo 3: Permitir apenas IPs específicos acessarem SSH
 
@@ -516,7 +623,11 @@ table inet filter {
 }
 ```
 
+<br/>
+
 ### 4. Regras Entre LANs
+
+<br/>
 
 #### Permitir apenas LAN1 acessar LAN2 (unidirecional)
 
@@ -534,6 +645,8 @@ table inet filter {
     }
 }
 ```
+
+<br/>
 
 #### Bloquear comunicação entre LANs
 
@@ -558,6 +671,8 @@ table inet filter {
 ## Cenários Práticos
 
 ### Cenário 1: Configuração Básica de Gateway
+
+<br/>
 
 **Situação:** Você quer que as duas LANs tenham acesso à internet, mas que o firewall seja protegido.
 
@@ -593,6 +708,8 @@ table inet nat {
 }
 ```
 
+<br/>
+
 **Não esqueça de habilitar IP forwarding:**
 ```bash
 sudo sysctl -w net.ipv4.ip_forward=1
@@ -603,7 +720,11 @@ echo "net.ipv4.ip_forward=1" | sudo tee -a /etc/sysctl.conf
 echo "net.ipv6.conf.all.forwarding=1" | sudo tee -a /etc/sysctl.conf
 ```
 
+<br/>
+
 ### Cenário 2: Servidor Web na LAN1 Acessível da Internet
+
+<br/>
 
 **Situação:** Servidor web em 192.168.1.100 deve ser acessível na porta 80 da internet.
 
@@ -634,7 +755,11 @@ table inet filter {
 }
 ```
 
+<br/>
+
 ### Cenário 3: LAN1 (Escritório) e LAN2 (Convidados) Isoladas
+
+<br/>
 
 **Situação:** LAN1 tem acesso total, LAN2 só acessa internet e tem restrições.
 
@@ -669,7 +794,11 @@ table inet filter {
 }
 ```
 
+<br/>
+
 ### Cenário 4: Múltiplos Port Forwards
+
+<br/>
 
 **Situação:** Você tem vários servidores internos que precisam ser acessíveis.
 
@@ -710,8 +839,15 @@ table inet filter {
 ---
 
 ## Erros Comuns e Como Evitá-los
-
+---
+export_on_save:
+    puppeteer: true # export PDF on save
+    puppeteer: ["pdf", "png"] # export PDF and PNG files on save
+    puppeteer: ["png"] # export PNG file on save
+---
 ### 1. ❌ Perder acesso SSH ao configurar remotamente
+
+<br/>
 
 **Problema:** Você aplica `policy drop` na chain input sem permitir SSH primeiro.
 
@@ -731,6 +867,8 @@ sudo nft add chain inet filter input { type filter hook input priority 0 \; poli
 ```bash
 sudo nft -f /etc/nftables.conf && sleep 60 && sudo nft flush ruleset
 ```
+
+<br/>
 
 ### 2. ❌ Esquecer de habilitar IP forwarding
 
@@ -752,6 +890,8 @@ echo "net.ipv4.ip_forward=1" | sudo tee -a /etc/sysctl.conf
 sudo sysctl -p
 ```
 
+<br/>
+
 ### 3. ❌ Esquecer regras de estado (ct state)
 
 **Problema:** Permitiu tráfego de saída, mas as respostas não voltam.
@@ -765,10 +905,14 @@ chain forward {
 }
 ```
 
+<br/>
+
 **Solução:** Sempre inclua:
 ```bash
 ct state established,related accept
 ```
+
+<br/>
 
 ### 4. ❌ Ordem incorreta das regras
 
@@ -783,12 +927,16 @@ ip saddr 0.0.0.0/0 drop
 ip saddr 192.168.1.10 accept
 ```
 
+<br/>
+
 **Solução:** Regras mais específicas devem vir ANTES:
 ```bash
 # CORRETO
 ip saddr 192.168.1.10 accept
 ip saddr 0.0.0.0/0 drop
 ```
+
+<br/>
 
 ### 5. ❌ Confundir iifname com oifname
 
@@ -798,6 +946,8 @@ ip saddr 0.0.0.0/0 drop
 - `iifname` = interface de **entrada** (input interface)
 - `oifname` = interface de **saída** (output interface)
 
+<br/>
+
 **Exemplo para permitir LAN1 acessar internet:**
 ```bash
 # CORRETO
@@ -806,6 +956,8 @@ iifname "enp2s0" oifname "enp1s0" accept
 # ERRADO
 iifname "enp1s0" oifname "enp2s0" accept  # Isso é tráfego da internet para LAN!
 ```
+
+<br/>
 
 ### 6. ❌ Não salvar configurações
 
@@ -817,6 +969,8 @@ sudo nft list ruleset > /etc/nftables.conf
 sudo systemctl enable nftables
 ```
 
+<br/>
+
 ### 7. ❌ Sintaxe incorreta ao adicionar regras
 
 **Problema:** Esquecer vírgulas, usar chaves incorretamente.
@@ -826,14 +980,22 @@ sudo systemctl enable nftables
 iifname { "enp2s0" "enp3s0" } accept  # Falta vírgula
 ```
 
+<br/>
+
 **Correto:**
 ```bash
 iifname { "enp2s0", "enp3s0" } accept
 ```
 
+<br/>
+
 ### 8. ❌ Não testar após cada mudança
 
+<br/>
+
 **Problema:** Adicionar 10 regras de uma vez e não saber qual causou o problema.
+
+<br/>
 
 **Solução:** Teste incrementalmente:
 ```bash
@@ -850,4 +1012,6 @@ curl http://localhost
 
 ## Saiba mais:
 
-
+[GitHub: UC07-Instalacao_Config_Servidores_Linux](https://github.com/ferpaesdias/UC07-Instalacao_Config_Servidores_Linux)
+[Netfilter: The netfilter.org "nftables" project](https://www.netfilter.org/projects/nftables/index.html)
+[Wiki: nftables](https://wiki.nftables.org/wiki-nftables/index.php/Main_Page)
